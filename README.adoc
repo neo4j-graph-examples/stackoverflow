@@ -1,5 +1,5 @@
 //name of the graph example
-:name: Template
+:name: template
 //graph example description
 :description: Template Example
 //icon representing graph example
@@ -28,6 +28,13 @@
 :model-image: documentation/img/model.svg
 :example-image: documentation/img/example.png
 
+:expect: A value
+:param-name: param
+:param-value: param-value
+:result-column: name
+:example-query: MATCH (n:Node {name:$param}) +
+RETURN n.name as name
+
 image::{icon}[width=24]
 
 = {name} Graph Example
@@ -47,9 +54,9 @@ image::{model-image}[]
 === Example
 
 .Example Query
-[source,cypher]
+[source,cypher,subs=attributes]
 ----
-
+{example-query}
 ----
 
 === Implementation
