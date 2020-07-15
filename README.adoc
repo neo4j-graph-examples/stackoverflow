@@ -1,7 +1,9 @@
 //name of the graph example
 :name: template
 //graph example description
+:long_name: Template 
 :description: Template Example
+:repo: https://github.com/neo4j-graph-examples/{name}
 //icon representing graph example
 :icon: resources/icon.svg
 //associated search tags, separate multiple tags with comma
@@ -22,7 +24,7 @@
 //guide for the graph example. Should be friendly enough to be converted into various document formats
 :guide: documentation/guide.adoc
 //temporary for rendered guides
-:rendered-guide: guides.neo4j.com/{name}
+:rendered-guide: https://guides.neo4j.com/{name}
 //guide for modelling decisions. Should be friendly enough to be converted into various document formats
 :model-guide: 
 :model-image: documentation/img/model.svg
@@ -35,17 +37,46 @@
 :example-query: MATCH (n:Node {name:$param}) +
 RETURN n.name as name
 
-image::{icon}[width=24]
+image::{repo}/raw/master/{icon}[width=100]
 
-= {name} Graph Example
+= {long_name} Graph Example ({name})
 
 Description: {description}
 
 === Setup
 
-This is for version: {target-db-version}
+This is for Neo4j version: {target-db-version}
 
-rendered guide available from: `:play {rendered-guide}`
+ifeval::[{use-plugin} != false]
+Required plugins: {use-plugin}
+endif::[]
+
+Rendered guide available via: `:play {rendered-guide}`
+
+Download the zip file link:{repo}/raw/master/{name}.zip[{name}.zip] and add it as "project from file" to https://neo4j.com/developer/neo4j-desktop[Neo4j Desktop^].
+
+Load graph data via
+
+ifeval::[{use-dump-file} != false]
+[source,shell,subs=attributes]
+----
+bin/neo4j-admin load --from {use-dump-file} [--database "database"]
+----
+
+Or upload dump file to Neo4j Aura via https://console.neo4j.io/#import-instructions
+
+endif::[]
+
+ifeval::[{use-load-script} != false]
+
+[source,shell,subs=attributes]
+----
+bin/cypher-shell -u neo4j -p "password" -f {use-load-script} [-d "database"]
+----
+
+Or import in Neo4j Browser by dragging or pasting the content of {use-load-script}.
+
+endif::[]
 
 === Model
 
@@ -59,6 +90,38 @@ image::{model-image}[]
 {example-query}
 ----
 
+=== Code Examples
+
+.Javascript
+[source,javascript,subs=attributes]
+----
+include::code/javascript/example.js[]
+----
+
+.Java
+[source,java,subs=attributes]
+----
+include::code/java/Example.java[]
+----
+
+.Python
+[source,python,subs=attributes]
+----
+include::code/python/example.py[]
+----
+
+.C#
+[source,csharp,subs=attributes]
+----
+include::code/csharp/Example.cs[]
+----
+
+=== Feedback
+
+Repository: {repo}
+
+GitHub Issues: {repo}/issues
+
 === Implementation
 
-unrendered guide: link:{guide}[]
+Browser Guide Source: link:{repo}/tree/master/{guide}[{guide}]

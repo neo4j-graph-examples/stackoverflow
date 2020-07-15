@@ -1,13 +1,21 @@
-TARGET="movies"
-QUERY='
-MATCH (movie:Movie)<-[:ACTED_IN]-(actor)-[:ACTED_IN]->(rec:Movie)
-WHERE movie.title IN $favorites
-RETURN rec.title as title, count(*) as freq
-ORDER BY freq DESC LIMIT 5'
-PARAMNAME="favorites"
-PARAMVALUE="The Matrix"
-RESULTCOLUMN="title"
-EXPECT="Cloud Atlas"
+#/bin/sh
+NAME=${1-movies}
+TARGETPATH=${2-/tmp}
+TARGET="$TARGETPATH/$NAME"
+if [ ! -d $TARGET ]; then
+    git clone https://github.com/neo4j-graph-examples/$name $TARGET
+fi
+
+QUERY=`grep -e '^\(:query:\| .*\+$\)' $TARGET/README.adoc | cut -d' ' -f2- | sed -e 's/\+$//g'` 
+EXPECT=`grep :expected-result: $TARGET/README.adoc | cut -d' ' -f2-`
+PARAMNAME=`grep :param-name: $TARGET/README.adoc | cut -d' ' -f2-`
+PARAMVALUE=`grep :param-value: $TARGET/README.adoc | cut -d' ' -f2-`
+RESULTCOLUMN=`grep :result-column: $TARGET/README.adoc | cut -d' ' -f2-`
+
+# "Cloud Atlas"
+echo For example \"$NAME\" running 
+echo $QUERY 
+echo Expecting \"$EXPECT\" with {\"$PARAMNAME\": \"$PARAMVALUE\"} returning \"$RESULTCOLUMN\"
 
 echo "$QUERY"
 echo "----"

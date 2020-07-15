@@ -1,0 +1,13 @@
+- add single line to run current example as docker container
+- package as desktop zip file -> put on s3?
+- append version to dump files for desktop?
+- service to generate zip files for desktop on demand?
+- use guides/html/adoc, import scripts and dump files from sandbox (make s3 public?)
+- only have minimal additional config? in each repo
+- add project.json for the desktop related bits, figure out how to integrate project.json into adoc, 
+- probably just generate/replace default readme.adoc
+- update example data page -> point to sandbox
+  - stackoverflow data, tomaz datasets
+  - update for cypher shell and neo4j-admin dump/load
+  - migrate datasets from cypher testing to 4.0 / 4.1
+
