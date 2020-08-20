@@ -1,4 +1,4 @@
-// go mode init main
+// go mod init main
 // go run example.go
 package main
 import (
@@ -6,7 +6,7 @@ import (
 	"github.com/neo4j/neo4j-go-driver/neo4j" //Go 1.8
 )
 func main() {
-	s, err := runQuery("bolt://<HOST>:<BOLTPORT>", "<USERNAME>", "<PASSWORD>")
+	s, err := runQuery("bolt://demo.neo4jlabs.com:7687", "mUser", "s3cr3t")
 	if err != nil {
 		panic(err)
 	}
@@ -19,7 +19,7 @@ func runQuery(uri, username, password string) ([]string, error) {
 		return nil, err
 	}
 	defer driver.Close()
-	sessionConfig := neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead}
+	sessionConfig := neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead, DatabaseName: "movies"}
 	session, err := driver.NewSession(sessionConfig)
 	if err != nil {
 		return nil, err
@@ -27,15 +27,17 @@ func runQuery(uri, username, password string) ([]string, error) {
 	defer session.Close()
 	results, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
-			"<QUERY>", map[string]interface{}{
-				"<PARAM-NAME>": "<PARAM-VALUE>",
+			`
+			MATCH (m:Movie {title:$movieTitle})<-[:ACTED_IN]-(a:Person) RETURN a.name as actorName
+			`, map[string]interface{}{
+				"movieTitle": "The Matrix",
 			})
 		if err != nil {
 			return nil, err
 		}
 		arr := make([]string, 0)
 		for result.Next() {
-			value, found := result.Record().Get("<RESULT-COLUMN>")
+			value, found := result.Record().Get("actorName")
 			if found {
 			  arr = append(arr, value.(string))
 			}

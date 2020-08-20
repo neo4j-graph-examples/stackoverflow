@@ -25,12 +25,42 @@ echo "Adding language examples to $TARGET, Hit ctrl-c to abort"
 read
 
 mkdir -p $TARGET/code
+#cp -r code $TARGET
 
 Q=`/bin/echo -n "$QUERY" | tr '\n' '§'`
 
+echo $QUERY
+lines=`echo $QUERY | wc -l`
+echo Lines $lines
+echo $Q
+
+URL="neo4j+s:\/\/demo.neo4jlabs.com:7687"
+BOLTURL="bolt:\/\/<HOST>:<BOLTPORT>"
+
 for file in */?xample.*; do
     LANG=${file%%/*}
-    echo $LANG $file
+    echo "Updating $LANG $file"
     mkdir -p $TARGET/code/$LANG
-    sed -e "s/<PARAM-NAME>/$PARAMNAME/g" -e "s/<PARAM-VALUE>/$PARAMVALUE/g" -e "s/<QUERY>/$Q/g" -e "s/<RESULT-COLUMN>/$RESULTCOLUMN/g" -e $'s/§/\\\n/g' $file > $TARGET/code/$file
+    cp $file $TARGET/code/$file
+    indent=`grep 'MATCH (m:Movie' $TARGET/code/$file | cut -d'M' -f1 | cut -d'"' -f1`
+    echo "Indent #$indent#"
+    if [ $LANG == "java" ]; then
+      Q2=`/bin/echo -n "$QUERY" | sed -e "s/\(.*\)/$indent\"\1\" +/g" | tr '\n' '§' | sed -e 's/\+$/;/g'`
+    else
+      Q2=`/bin/echo -n "$QUERY" | sed -e "s/\(.*\)/$indent\1/g" | tr '\n' '§'`
+    fi
+    echo "$Q2"
+    sed -i -e "s/^.*MATCH (m:Movie.*$/$Q2/g" $TARGET/code/$file
+    mv $TARGET/code/$file $TARGET/code/$file.tmp
+    tr '§' '\n' < $TARGET/code/$file.tmp > $TARGET/code/$file
+    rm $TARGET/code/$file.tmp
+
+    sed -i -e "s/$URL/$BOLTURL/g" $TARGET/code/$file
+    sed -i -e "s/movieTitle/$PARAMNAME/g" $TARGET/code/$file
+    sed -i -e "s/The Matrix/$PARAMVALUE/g" $TARGET/code/$file
+    sed -i -e "s/actorName/$RESULTCOLUMN/g" $TARGET/code/$file
+    # database
+    sed -i -e "s/movies/neo4j/g" $TARGET/code/$file
+    sed -i -e "s/mUser/<USERNAME>/g" $TARGET/code/$file
+    sed -i -e "s/s3cr3t/<PASSWORD>/g" $TARGET/code/$file
 done

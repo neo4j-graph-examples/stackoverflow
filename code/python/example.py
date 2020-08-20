@@ -1,22 +1,22 @@
-# pip install neo4j-driver
-# python example.py
+# pip3 install neo4j-driver
+# python3 example.py
 
 from neo4j import GraphDatabase, basic_auth
 
 driver = GraphDatabase.driver(
-  "bolt://<HOST>:<BOLTPORT>", 
-  auth=basic_auth("<USERNAME>", "<PASSWORD>"))
+  "neo4j+s://demo.neo4jlabs.com:7687", 
+  auth=basic_auth("mUser", "s3cr3t"))
 
 cypher_query = '''
-<QUERY>
+MATCH (m:Movie {title:$movieTitle})<-[:ACTED_IN]-(a:Person) RETURN a.name as actorName
 '''
 
-with driver.session() as session:
+with driver.session(database="movies") as session:
   results = session.read_transaction(
     lambda tx: tx.run(cypher_query,
-      <PARAM-NAME>=["<PARAM-VALUE>"]))
+      movieTitle="The Matrix").data())
 
   for record in results:
-    print(record['<RESULT-COLUMN>'])
+    print(record['actorName'])
 
 driver.close()
