@@ -16,7 +16,6 @@ RESULTCOLUMN=`grep :result-column: $TARGET/README.adoc | cut -d' ' -f2-`
 echo For example \"$NAME\" running 
 echo $QUERY 
 echo Expecting \"$EXPECT\" with {\"$PARAMNAME\": \"$PARAMVALUE\"} returning \"$RESULTCOLUMN\"
-# exit
 
 BOLTPORT=7687
 HOST=localhost
@@ -25,24 +24,26 @@ PASSWORD=secret
 JAVA_DRIVER_VERSION=4.0.1
 RX_VERSION=1.0.3
 
+# todo enterprise
+DOCKER_ID=`docker run -d -p $BOLTPORT:$BOLTPORT -v $TARGET:/repo  --env NEO4J_AUTH=$USERNAME/$PASSWORD neo4j:3.5`
 
-docker run -d --name example-test -p $BOLTPORT:$BOLTPORT -v $TARGET/data:/data --env NEO4J_AUTH=$USERNAME/$PASSWORD neo4j:3.5
-DOCKER_ID=$(docker ps -a -q -f name=example-test)
 echo $DOCKER_ID
+docker exec $DOCKER_ID sh -c "ls /repo"
+# sleep 10
 
-sleep 10
 docker logs $DOCKER_ID
 
 # todo also handle dump files
+exit
 
-docker exec $DOCKER_ID sh -c "cat /scripts/import.cypher | /var/lib/neo4j/bin/cypher-shell -u $USERNAME -p $PASSWORD -a bolt://$HOST:$BOLTPORT"
+docker exec $DOCKER_ID sh -c "cat /repo/scripts/import.cypher | cypher-shell -u $USERNAME -p $PASSWORD"
 
 echo "Node-Count:"
-docker exec $DOCKER_ID sh -c "echo 'MATCH (n) RETURN count(*);' | /var/lib/neo4j/bin/cypher-shell -u $USERNAME -p $PASSWORD -a bolt://$HOST:$BOLTPORT"
+docker exec $DOCKER_ID cypher-shell -u $USERNAME -p $PASSWORD 'MATCH (n) RETURN count(*);'
 
-TMP=/tmp/code
-mkdir -p $TMP
-pushd $TMP
+CODE=/tmp/code
+mkdir -p $CODE
+pushd $CODE
 
 npm install --save neo4j-driver 
 sed -e "s/<BOLTPORT>/$BOLTPORT/g" -e "s/<HOST>/$HOST/g" -e "s/<USERNAME>/$USERNAME/g" -e "s/<PASSWORD>/$PASSWORD/g" $TARGET/code/javascript/example.js > example.js
