@@ -14,12 +14,13 @@ RESULTCOLUMN=`grep :result-column: $TARGET/README.adoc | cut -d' ' -f2-`
 
 # "Cloud Atlas"
 echo For example \"$NAME\" running 
-echo $QUERY 
+echo "$QUERY" 
+echo
 echo Expecting \"$EXPECT\" with {\"$PARAMNAME\": \"$PARAMVALUE\"} returning \"$RESULTCOLUMN\"
 
-echo "$QUERY"
-echo "----"
-echo ${PARAMNAME} ${PARAMVALUE} ${RESULTCOLUMN}
+#echo "$QUERY"
+#echo "----"
+#echo ${PARAMNAME} ${PARAMVALUE} ${RESULTCOLUMN}
 
 echo "Adding language examples to $TARGET, Hit ctrl-c to abort"
 read
@@ -43,13 +44,13 @@ for file in */?xample.*; do
     mkdir -p $TARGET/code/$LANG
     cp $file $TARGET/code/$file
     indent=`grep 'MATCH (m:Movie' $TARGET/code/$file | cut -d'M' -f1 | cut -d'"' -f1`
-    echo "Indent #$indent#"
+#    echo "Indent #$indent#"
     if [ $LANG == "java" ]; then
       Q2=`/bin/echo -n "$QUERY" | sed -e "s/\(.*\)/$indent\"\1\" +/g" | tr '\n' '§' | sed -e 's/\+$/;/g'`
     else
       Q2=`/bin/echo -n "$QUERY" | sed -e "s/\(.*\)/$indent\1/g" | tr '\n' '§'`
     fi
-    echo "$Q2"
+#   echo "$Q2"
     sed -i -e "s/^.*MATCH (m:Movie.*$/$Q2/g" $TARGET/code/$file
     mv $TARGET/code/$file $TARGET/code/$file.tmp
     tr '§' '\n' < $TARGET/code/$file.tmp > $TARGET/code/$file

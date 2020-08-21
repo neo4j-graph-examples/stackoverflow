@@ -92,28 +92,34 @@ image::{model-image}[]
 
 === Code Examples
 
-.Javascript
-[source,javascript,subs=attributes]
+.link:code/javascript/example.js[JavaScript]
+[source,javascript]
 ----
 include::code/javascript/example.js[]
 ----
 
-.Java
-[source,java,subs=attributes]
+.link:code/java/Example.java[Java]
+[source,java]
 ----
 include::code/java/Example.java[]
 ----
 
-.Python
-[source,python,subs=attributes]
+.link:code/python/example.py[Python]
+[source,python]
 ----
 include::code/python/example.py[]
 ----
 
-.C#
-[source,csharp,subs=attributes]
+.link:code/csharp/Example.cs[C#]
+[source,csharp]
 ----
 include::code/csharp/Example.cs[]
+----
+
+.link:code/go/example.go[Go]
+[source,go]
+----
+include::code/go/example.go[]
 ----
 
 === Feedback
