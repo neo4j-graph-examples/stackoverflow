@@ -35,7 +35,7 @@ func runQuery(uri, username, password string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		arr := make([]string, 0)
+		var arr []string
 		for result.Next() {
 			value, found := result.Record().Get("actorName")
 			if found {
