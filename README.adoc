@@ -1,8 +1,8 @@
 //name of the graph example
 :name: template
 //graph example description
-:long_name: Template 
-:description: Template Example
+:long-name: Template 
+:description: Template example
 :repo: https://github.com/neo4j-graph-examples/{name}
 //icon representing graph example
 :icon: resources/icon.svg
@@ -26,22 +26,36 @@
 //temporary for rendered guides
 :rendered-guide: https://guides.neo4j.com/{name}
 //guide for modelling decisions. Should be friendly enough to be converted into various document formats
-:model-guide: 
-:model-image: documentation/img/model.svg
-:example-image: documentation/img/example.png
+:model: documentation/img/model.svg
+:example: documentation/img/example.png
 
-:expect: A value
+:query: MATCH (n:Node {name:$param}) +
+RETURN n.name as name +
+
 :param-name: param
 :param-value: param-value
 :result-column: name
-:example-query: MATCH (n:Node {name:$param}) +
-RETURN n.name as name
+:expected-result: A value
 
+:model-guide:
+:todo:
 image::{repo}/raw/master/{icon}[width=100]
 
-= {long_name} Graph Example ({name})
+== {long-name} Graph Example ({name})
 
-Description: {description}
+Description: _{description}_
+
+.Model
+image::{model}[]
+
+.Example
+image::{example}[width=600]
+
+.Example Query:
+[source,cypher,subs=attributes]
+----
+{query}
+----
 
 === Setup
 
@@ -64,31 +78,20 @@ bin/neo4j-admin load --from {use-dump-file} [--database "database"]
 ----
 
 Or upload dump file to Neo4j Aura via https://console.neo4j.io/#import-instructions
-
 endif::[]
 
 ifeval::[{use-load-script} != false]
-
 [source,shell,subs=attributes]
 ----
 bin/cypher-shell -u neo4j -p "password" -f {use-load-script} [-d "database"]
 ----
 
 Or import in Neo4j Browser by dragging or pasting the content of {use-load-script}.
-
 endif::[]
 
-=== Model
+Unrendered guide: link:{guide}[]
 
-image::{model-image}[]
-
-=== Example
-
-.Example Query
-[source,cypher,subs=attributes]
-----
-{example-query}
-----
+Data files: `{data}`
 
 === Code Examples
 
@@ -127,7 +130,3 @@ include::code/go/example.go[]
 Repository: {repo}
 
 GitHub Issues: {repo}/issues
-
-=== Implementation
-
-Browser Guide Source: link:{repo}/tree/master/{guide}[{guide}]
