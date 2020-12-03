@@ -3,17 +3,22 @@
 //graph example description
 :long-name: Template 
 :description: Template example
-:repo: https://github.com/neo4j-graph-examples/{name}
 //icon representing graph example
 :icon: resources/icon.svg
 //associated search tags, separate multiple tags with comma
-:tags: 
+:tags: example-data, dataset, template-data, example, template, model
 //graph example author
-:author: 
+:author: Neo4j Devrel
+//whether or not this example is available on the demodb. Set to false if not used
+:demodb: false
+//data flat files (csv, json, etc). Set to false if not used
+:data: false
 //use a script to generate/process data? Set to either path for script, or false if not used
 :use-load-script: scripts/import.cypher
 //use a graph dump file for initial data set? Set to either path for dump file, or false if not used
 :use-dump-file: false
+//if a zip file exists for the data, specify here. Set to false if not used
+:zip-file: false
 //use a plugin for the database, separate multiple plugins with comma. 'public' plugins are apoc, graph-algorithms. 
 //other algorithms are specified by path, e.g. apoc,graph-algorithms; Set to false if not used
 :use-plugin: false
@@ -22,10 +27,10 @@
 //specify a Bloom perspective, or false if not used
 :bloom-perspective: bloom/bloom.perspective
 //guide for the graph example. Should be friendly enough to be converted into various document formats
-:guide: documentation/guide.adoc
+:guide: documentation/template.neo4j-browser-guide
 //temporary for rendered guides
-:rendered-guide: https://guides.neo4j.com/{name}
-//guide for modelling decisions. Should be friendly enough to be converted into various document formats
+:rendered-guide: https://guides.neo4j.com/{name}/index.html
+//guide for modeling decisions. Should be friendly enough to be converted into various document formats
 :model: documentation/img/model.svg
 :example: documentation/img/example.png
 
@@ -37,13 +42,16 @@ RETURN n.name as name +
 :result-column: name
 :expected-result: A value
 
-:model-guide:
 :todo:
 image::{repo}/raw/master/{icon}[width=100]
 
-== {long-name} Graph Example ({name})
+== {long-name} Graph Example
 
 Description: _{description}_
+
+ifeval::[{todo} != false]
+TODO: {todo}
+endif::[]
 
 .Model
 image::{model}[]
@@ -65,22 +73,42 @@ ifeval::[{use-plugin} != false]
 Required plugins: {use-plugin}
 endif::[]
 
+ifeval::[{demodb} != false]
+The database is also available on https://demo.neo4jlabs.com:7473
+
+Username "{name}", password: "{name}", database: "{name}"
+endif::[]
+
 Rendered guide available via: `:play {rendered-guide}`
 
-Download the zip file link:{repo}/raw/master/{name}.zip[{name}.zip] and add it as "project from file" to https://neo4j.com/developer/neo4j-desktop[Neo4j Desktop^].
+Unrendered guide: link:{guide}[]
 
-Load graph data via
+Load graph data via the following:
 
-ifeval::[{use-dump-file} != false]
+ifeval::[{data} != false]
+Data files: `{data}`
+
+Import flat files (csv, json, etc) using Cypher's https://neo4j.com/docs/cypher-manual/current/clauses/load-csv/[`LOAD CSV`], https://neo4j.com/labs/apoc/[APOC library], or https://neo4j.com/developer/data-import/[other methods].
+endif::[]
+
+ifeval::[{use-dump-file} != null]
+Dump file: `{use-dump-file}`
+
+* Drop the file into the `Files` section of a project in Neo4j Desktop. Then choose the option to `Create new DBMS from dump` option from the file options.
+
+* Use the neo4j-admin tool to load data from the command line with the command below.
+
 [source,shell,subs=attributes]
 ----
 bin/neo4j-admin load --from {use-dump-file} [--database "database"]
 ----
 
-Or upload dump file to Neo4j Aura via https://console.neo4j.io/#import-instructions
+* Upload the dump file to Neo4j Aura via https://console.neo4j.io/#import-instructions
 endif::[]
 
 ifeval::[{use-load-script} != false]
+Data load script: `{use-load-script}`
+
 [source,shell,subs=attributes]
 ----
 bin/cypher-shell -u neo4j -p "password" -f {use-load-script} [-d "database"]
@@ -89,44 +117,18 @@ bin/cypher-shell -u neo4j -p "password" -f {use-load-script} [-d "database"]
 Or import in Neo4j Browser by dragging or pasting the content of {use-load-script}.
 endif::[]
 
-Unrendered guide: link:{guide}[]
-
-Data files: `{data}`
+ifeval::[{zip} != false]
+Download the zip file link:{repo}/raw/master/{name}.zip[{name}.zip] and add it as "project from file" to https://neo4j.com/developer/neo4j-desktop[Neo4j Desktop^].
+endif::[]
 
 === Code Examples
 
-.link:code/javascript/example.js[JavaScript]
-[source,javascript]
-----
-include::code/javascript/example.js[]
-----
-
-.link:code/java/Example.java[Java]
-[source,java]
-----
-include::code/java/Example.java[]
-----
-
-.link:code/python/example.py[Python]
-[source,python]
-----
-include::code/python/example.py[]
-----
-
-.link:code/csharp/Example.cs[C#]
-[source,csharp]
-----
-include::code/csharp/Example.cs[]
-----
-
-.link:code/go/example.go[Go]
-[source,go]
-----
-include::code/go/example.go[]
-----
+* link:code/javascript/example.js[JavaScript]
+* link:code/java/Example.java[Java]
+* link:code/csharp/Example.cs[C#]
+* link:code/python/example.py[Python]
+* link:code/go/example.go[Go]
 
 === Feedback
 
-Repository: {repo}
-
-GitHub Issues: {repo}/issues
+Feel free to submit issues or pull requests for improvement on this repository.

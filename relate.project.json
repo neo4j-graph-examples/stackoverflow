@@ -2,7 +2,7 @@
     "name": "template",
     "description":"Template example",
     "scriptFile":"scripts/import.cypher",
-    "install": [
+    "dbms": [
       {
           "targetNeo4jVersion":"3.5"
       },
