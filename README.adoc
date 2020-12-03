@@ -4,7 +4,7 @@
 :long-name: Template 
 :description: Template example
 //icon representing graph example
-:icon: resources/icon.svg
+:icon: documentation/img/icon.svg
 //associated search tags, separate multiple tags with comma
 :tags: example-data, dataset, template-data, example, template, model
 //graph example author
@@ -43,7 +43,7 @@ RETURN n.name as name +
 :expected-result: A value
 
 :todo:
-image::{repo}/raw/master/{icon}[width=100]
+image::{icon}[width=100]
 
 == {long-name} Graph Example
 
