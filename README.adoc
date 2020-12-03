@@ -117,7 +117,7 @@ bin/cypher-shell -u neo4j -p "password" -f {use-load-script} [-d "database"]
 Or import in Neo4j Browser by dragging or pasting the content of {use-load-script}.
 endif::[]
 
-ifeval::[{zip} != false]
+ifeval::[{zip-file} != false]
 Download the zip file link:{repo}/raw/master/{name}.zip[{name}.zip] and add it as "project from file" to https://neo4j.com/developer/neo4j-desktop[Neo4j Desktop^].
 endif::[]
 
