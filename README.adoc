@@ -42,7 +42,7 @@ RETURN n.name as name +
 :result-column: name
 :expected-result: A value
 
-:todo:
+:todo: false
 image::{icon}[width=100]
 
 == {long-name} Graph Example
@@ -50,7 +50,7 @@ image::{icon}[width=100]
 Description: _{description}_
 
 ifeval::[{todo} != false]
-TODO: {todo}
+To Do: {todo}
 endif::[]
 
 .Model
@@ -91,7 +91,7 @@ Data files: `{data}`
 Import flat files (csv, json, etc) using Cypher's https://neo4j.com/docs/cypher-manual/current/clauses/load-csv/[`LOAD CSV`], https://neo4j.com/labs/apoc/[APOC library], or https://neo4j.com/developer/data-import/[other methods].
 endif::[]
 
-ifeval::[{use-dump-file} != null]
+ifeval::[{use-dump-file} != false]
 Dump file: `{use-dump-file}`
 
 * Drop the file into the `Files` section of a project in Neo4j Desktop. Then choose the option to `Create new DBMS from dump` option from the file options.
