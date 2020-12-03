@@ -1,12 +1,12 @@
 {
     "name": "template",
     "description":"Template example",
-    "scriptFile":"scripts/template.cypher",
     "dbms": [
       {
           "targetNeo4jVersion":"3.5"
       },
       {
+          "scriptFile":"scripts/template.cypher",
           "targetNeo4jVersion": "^4.0"
       }
   ]
