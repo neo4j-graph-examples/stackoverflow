@@ -14,7 +14,7 @@
 //data flat files (csv, json, etc). Set to false if not used
 :data: false
 //use a script to generate/process data? Set to either path for script, or false if not used
-:use-load-script: scripts/import.cypher
+:use-load-script: scripts/template.cypher
 //use a graph dump file for initial data set? Set to either path for dump file, or false if not used
 :use-dump-file: false
 //if a zip file exists for the data, specify here. Set to false if not used
