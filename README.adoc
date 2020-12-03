@@ -9,7 +9,7 @@
 :tags: example-data, dataset, template-data, example, template, model
 //graph example author
 :author: Neo4j Devrel
-//whether or not this example is available on the demodb. Set to false if not used
+//true if this example is available on the demodb. Set to false if not used
 :demodb: false
 //data flat files (csv, json, etc). Set to false if not used
 :data: false
