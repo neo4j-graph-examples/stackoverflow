@@ -11,5 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Run update
-        run: |
-          echo Hello
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.TOKEN }}
+          repository: neo4j-contrib/sandbox-code-updater
+          event-type: template-code-changes
