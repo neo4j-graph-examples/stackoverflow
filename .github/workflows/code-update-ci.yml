@@ -1,0 +1,15 @@
+name: Code Update CI
+on:
+  push:
+    branches: [ master ]
+    paths: [ 'code/**', '.github/**' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run update
+        run: |
+          echo Hello
