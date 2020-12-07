@@ -1,0 +1,20 @@
+= Code Update instructions
+
+The sandbox code updates are managed by https://github.com/neo4j-contrib/sandbox-code-updater[this project].
+
+It relies on https://github.com/neo4j-contrib/sandbox-code-updater/actions[CI] to automatically send pull requests to the configured sandbox repositories.
+
+The sandbox pull requests are listed https://github.com/pulls?q=is%3Aopen+is%3Apr+user%3Aneo4j-graph-examples+archived%3Afalse+[here].
+
+== Triggers
+
+Any change to this repository will trigger https://github.com/neo4j-contrib/sandbox-code-updater/actions[the code updater CI].
+
+Pull requests will be open if and only if new code contents are generated.
+
+== Adding a new sandbox
+
+Currently, the process needs to happen in two steps:
+
+. Grant `write` access to the new sandbox repository https://github.com/orgs/neo4j-graph-examples/teams/oss-build/repositories[here]
+. Add the *HTTPS* (not SSH) URI of the sandbox repository https://github.com/neo4j-contrib/sandbox-code-updater/blob/main/src/main/resources/application.yml#L2[here]
