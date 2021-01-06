@@ -14,7 +14,24 @@ Pull requests will be open if and only if new code contents are generated.
 
 == Adding a new sandbox
 
-Currently, the process needs to happen in two steps:
+
+First, make sure the sandbox `README.adoc` defines the required query parameters for the code example. 
+Here is an extract from the Movies sandbox README for inspiration:
+
+[source,asciidoc]
+----
+
+:query: MATCH (movie:Movie {title:$favorite})<-[:ACTED_IN]-(actor)-[:ACTED_IN]->(rec:Movie) +
+ RETURN distinct rec.title as title LIMIT 20 +
+
+:param-name: favorite
+:param-value: The Matrix
+:result-column: title
+:expected-result: Cloud Atlas
+----
+
+
+Then, the process needs to happen in two steps:
 
 . Grant `write` access to the new sandbox repository https://github.com/orgs/neo4j-graph-examples/teams/oss-build/repositories[here]
 . Add the *HTTPS* (not SSH) URI of the sandbox repository https://github.com/neo4j-contrib/sandbox-code-updater/blob/main/src/main/resources/application.yml#L2[here]
