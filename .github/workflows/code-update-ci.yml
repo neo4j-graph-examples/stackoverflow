@@ -16,3 +16,4 @@ jobs:
           token: ${{ secrets.TOKEN }}
           repository: neo4j-contrib/sandbox-code-updater
           event-type: template-code-changes
+          client-payload: '{"source": "${{ github.repository }}", "commit": "${{ github.sha }}"}'
