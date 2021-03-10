@@ -21,13 +21,12 @@ Here is an extract from the Movies sandbox README for inspiration:
 [source,asciidoc]
 ----
 
-:query: MATCH (movie:Movie {title:$favorite})<-[:ACTED_IN]-(actor)-[:ACTED_IN]->(rec:Movie) +
- RETURN distinct rec.title as title LIMIT 20 +
+[source,cypher,role=query-example,param-name=favorite,param-value="The Matrix",result-column=title,expected-result="Cloud Atlas"]
+----
+MATCH (movie:Movie {title:$favorite})<-[:ACTED_IN]-(actor)-[:ACTED_IN]->(rec:Movie)
+ RETURN distinct rec.title as title LIMIT 20
+----
 
-:param-name: favorite
-:param-value: The Matrix
-:result-column: title
-:expected-result: Cloud Atlas
 ----
 
 
