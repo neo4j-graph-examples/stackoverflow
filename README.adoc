@@ -34,14 +34,6 @@
 :model: documentation/img/model.svg
 :example: documentation/img/example.png
 
-:query: MATCH (n:Node {name:$param}) +
-RETURN n.name as name +
-
-:param-name: param
-:param-value: param-value
-:result-column: name
-:expected-result: A value
-
 :todo: false
 image::{icon}[width=100]
 
@@ -60,9 +52,19 @@ image::{model}[]
 image::{example}[width=600]
 
 .Example Query:
-[source,cypher,subs=attributes]
+
+:param-name: param
+:param-value: param-value
+
+[source,cypher,role=query-example-params,subs=+attributes]
 ----
-{query}
+:param {param-name} => "{param-value}"
+----
+
+[source,cypher,role=query-example,param-name={param-name},param-value={param-value},result-column=name,expected-result="A value"]
+----
+MATCH (n:Node {name:$param})
+RETURN n.name as name
 ----
 
 === Setup

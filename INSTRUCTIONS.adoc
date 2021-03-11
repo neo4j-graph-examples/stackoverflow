@@ -19,15 +19,21 @@ First, make sure the sandbox `README.adoc` defines the required query parameters
 Here is an extract from the Movies sandbox README for inspiration:
 
 [source,asciidoc]
+-----
+:param-name: favorite
+:param-value: The Matrix
+
+[source,cypher,role=query-example-params,subs=+attributes]
+----
+:param {param-name} => "{param-value}"
 ----
 
-[source,cypher,role=query-example,param-name=favorite,param-value="The Matrix",result-column=title,expected-result="Cloud Atlas"]
+[source,cypher,role=query-example,param-name={param-name},param-value={param-value},result-column=title,expected-result="Cloud Atlas"]
 ----
 MATCH (movie:Movie {title:$favorite})<-[:ACTED_IN]-(actor)-[:ACTED_IN]->(rec:Movie)
  RETURN distinct rec.title as title LIMIT 20
 ----
-
-----
+-----
 
 
 Then, the process needs to happen in two steps:
