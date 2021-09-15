@@ -3,11 +3,11 @@
     "description":"Template example",
     "dbms": [
       {
-          "targetNeo4jVersion":"3.5"
+          "targetNeo4jVersion":"4.3"
       },
       {
-          "scriptFile":"scripts/template.cypher",
-          "targetNeo4jVersion": "^4.0"
+          "scriptFile":"scripts/stackoverflow.cypher",
+          "targetNeo4jVersion": "^4.3"
       }
   ]
 }
