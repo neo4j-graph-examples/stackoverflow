@@ -1,10 +1,71 @@
-﻿== Exploring StackOverflow
+﻿== Exploring Stackoverflow
 
-Every develper has a tab open Stack Overflow[https://stackoverflow.com/^], the massively popular question-and-answer site.  
+Every developer has a tab open https://stackoverflow.com/[Stack Overflow^], the massively popular question-and-answer site. This dataset explores questions, answers, comments, and tags related to the `neo4j`- and `cypher`- tagged questions on Stack Overflow.
 
-== About this Data
+== Load JSON Import
+
+Update this dataset using `apoc.load.json`. Run the query as-is or add a tag to the `tags` array. 
+
+//setup
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+// look for several pages of questions
+WITH ["neo4j","cypher"] as tags 
+UNWIND tags as tagName
+UNWIND range(1,2) as page // careful with throttling
+WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&pagesize=100&order=desc&sort=creation&tagged="+tagName+"&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
+CALL apoc.load.json(url) YIELD value
+CALL apoc.util.sleep(250)
+UNWIND value.items AS q
+// create the questions
+MERGE (question:Question {uuid:q.question_id})
+  ON CREATE SET question.title = q.title, 
+  	question.link = q.share_link, 
+  	question.creation_date = q.creation_date, 
+  	question.accepted_answer_id=q.accepted_answer_id, 
+  	question.view_count=q.view_count,
+   	question.answer_count=q.answer_count,
+   	question.body_markdown=q.body_markdown
+ // who asked the question
+MERGE (owner:User {uuid:coalesce(q.owner.user_id,'deleted')})
+  ON CREATE SET owner.display_name = q.owner.display_name
+MERGE (owner)-[:ASKED]->(question)
+// what tags do the questions have
+FOREACH (tagName IN q.tags | 
+  MERGE (tag:Tag {name:tagName}) 
+    ON CREATE SET tag.link = "https://stackoverflow.com/questions/tagged/" + tag.name
+  MERGE (question)-[:TAGGED]->(tag))
+// who answered the questions?
+FOREACH (a IN q.answers |
+   MERGE (question)<-[:ANSWERED]-(answer:Answer {uuid:a.answer_id})
+    ON CREATE SET answer.is_accepted = a.is_accepted,
+    answer.link=a.share_link,
+    answer.title=a.title,
+    answer.body_markdown=a.body_markdown,
+    answer.score=a.score,
+   	answer.favorite_score=a.favorite_score,
+   	answer.view_count=a.view_count
+   MERGE (answerer:User {uuid:coalesce(a.owner.user_id,'deleted')}) 
+    ON CREATE SET answerer.display_name = a.owner.display_name
+   MERGE (answer)<-[:PROVIDED]-(answerer)
+)
+FOREACH (c in q.comments |
+  MERGE (question)<-[:COMMENTED_ON]-(comment:Comment {uuid:c.comment_id})
+    ON CREATE SET comment.link=c.link, comment.score=c.score
+  MERGE (commenter:User {uuid:coalesce(c.owner.user_id,'deleted')}) 
+    ON CREATE SET commenter.display_name = c.owner.display_name
+  MERGE (comment)<-[:COMMENTED]-(commenter)
+);
+----
+
+Read More: https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
 
 == The Shape of the Data 
+
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+---
+CALL db.schema.visualization;
+---
 
 === The Model
 
@@ -12,7 +73,7 @@ Every develper has a tab open Stack Overflow[https://stackoverflow.com/^], the m
 
 Labels in the graph and counts for each label:
 
-[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
 ----
 MATCH (n)
 RETURN labels(n) as label, count(*);
@@ -20,11 +81,11 @@ RETURN labels(n) as label, count(*);
 
 == Top Tags:
 
-[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
 ----
 MATCH (q:Question)-[:TAGGED]->(t:Tag)
-RETURN t.name, labels(n), count(q) AS questions
-ORDER BY posts DESC 
+RETURN t.name,  count(q) AS questions
+ORDER BY questions DESC
 LIMIT 5;
 ----
 
@@ -32,7 +93,7 @@ LIMIT 5;
 
 Top users asking questions:
 
-[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
 ----
 MATCH (u:User)-[:ASKED]->(q:Question)
 RETURN u.display_name, count(*) AS questions
@@ -42,7 +103,7 @@ LIMIT 10;
 
 Top users answering:
 
-[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
 ----
 MATCH (u:User)-[:PROVIDED]->(a:Answer)-[:ANSWERED]->(q:Question)
 RETURN u.display_name as user,COUNT(a) AS answers
@@ -51,7 +112,7 @@ ORDER BY answers DESC LIMIT 10;
 
 Shortest path between users:
 
-[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
 ----
 MATCH path = allShortestPaths((u1:User {display_name:"alexanoid"})-[*]-(u2:User {display_name:"InverseFalcon"})
 )
@@ -62,19 +123,19 @@ RETURN path LIMIT 1;
 
 Tags for unanswered questions:
 
-[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
 ----
 MATCH (q:Question)-[:TAGGED]->(t:Tag)
-WHERE not t.name IN ['neo4j','cypher'] and not (q)<-[:ANSWERED]-()
-RETURN t.name as tag, count(*) as question
-ORDER BY posts desc LIMIT 10;
+WHERE not t.name IN ['neo4j','cypher'] AND NOT (q)<-[:ANSWERED]-()
+RETURN t.name as tag, count(q) AS questions
+ORDER BY questions DESC LIMIT 10;
 ----
 
 == Correlation
 
 Tag correlations:
 
-[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
 ----
 MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
 WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
@@ -86,7 +147,7 @@ ORDER BY freq desc LIMIT 10;
 
 User engagement over time:
 
-[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
 ----
 MATCH (u:User)-[:PROVIDED]->()-[:ANSWERED]->(q:Question)-[:TAGGED]->(t:Tag)
 WHERE u.display_name = "InverseFalcon"
@@ -98,7 +159,7 @@ ORDER BY month asc
 
 Project tags via co-occurrence:
 
-[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
 ----
 MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
 WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
@@ -109,6 +170,5 @@ RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel
 == Further Reading
 
 * https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
-* https://medium.com/open-graphql/build-a-stackoverflow-graphql-api-demo-app-in-10-minutes-69afbf4d037c[Build a StackOverflow GraphQL API & Demo App in 10 Minutes^]
 * https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
 * https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes^]
