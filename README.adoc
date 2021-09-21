@@ -1,12 +1,12 @@
 //Stack Overflow 
-:name: template
+:name: stackoverflow
 //graph example description
-:long-name: Template 
-:description: Stack Overflow questions and answers
+:long-name: Stack Overflow Questions, Answers, Tags, and Comments 
+:description: Stack Overflow questions, answers, tags, and comments and the relationships between them.
 //icon representing graph example
 :icon: documentation/img/icon.svg
 //associated search tags, separate multiple tags with comma
-:tags: example-data, dataset, template-data, example, template, model
+:tags: stackoverflow-example-data, stackoverflow-dataset, stackoverflow-template-data, stackoverflow-example, stackoverflow-template, stackoverflow-model
 //graph example author
 :author: Neo4j Devrel
 //true if this example is available on the demodb. Set to false if not used
@@ -14,18 +14,18 @@
 //data flat files (csv, json, etc). Set to false if not used
 :data: false
 //use a script to generate/process data? Set to either path for script, or false if not used
-:use-load-script: scripts/template.cypher
+:use-load-script: scripts/import.cypher
 //use a graph dump file for initial data set? Set to either path for dump file, or false if not used
 :use-dump-file: false
 //if a zip file exists for the data, specify here. Set to false if not used
 :zip-file: false
 //use a plugin for the database, separate multiple plugins with comma. 'public' plugins are apoc, graph-algorithms. 
 //other algorithms are specified by path, e.g. apoc,graph-algorithms; Set to false if not used
-:use-plugin: false
+:use-plugin: apoc
 //target version of the database this example should run on
-:target-db-version: 3.5,4.0
+:target-db-version: 4.0,4.3
 //specify a Bloom perspective, or false if not used
-:bloom-perspective: bloom/bloom.perspective
+:bloom-perspective: false
 //guide for the graph example. Should be friendly enough to be converted into various document formats
 :guide: documentation/template.neo4j-browser-guide
 //temporary for rendered guides
@@ -63,7 +63,7 @@ image::{example}[width=600]
 
 [source,cypher,role=query-example,param-name={param-name},param-value={param-value},result-column=name,expected-result="A value"]
 ----
-MATCH (n:Node {name:$param})
+MATCH (n:Tag {name:$param})
 RETURN n.name as name
 ----
 
