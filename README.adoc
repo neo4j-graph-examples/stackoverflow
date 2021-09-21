@@ -27,7 +27,7 @@
 //specify a Bloom perspective, or false if not used
 :bloom-perspective: false
 //guide for the graph example. Should be friendly enough to be converted into various document formats
-:guide: documentation/template.neo4j-browser-guide
+:guide: documentation/stackoverflow.neo4j-browser-guide
 //temporary for rendered guides
 :rendered-guide: https://guides.neo4j.com/{name}/index.html
 //guide for modeling decisions. Should be friendly enough to be converted into various document formats

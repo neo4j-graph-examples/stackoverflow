@@ -1,0 +1,114 @@
+﻿== Exploring StackOverflow
+
+Every develper has a tab open Stack Overflow[https://stackoverflow.com/^], the massively popular question-and-answer site.  
+
+== About this Data
+
+== The Shape of the Data 
+
+=== The Model
+
+=== Basic Queries
+
+Labels in the graph and counts for each label:
+
+[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+MATCH (n)
+RETURN labels(n) as label, count(*);
+----
+
+== Top Tags:
+
+[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+MATCH (q:Question)-[:TAGGED]->(t:Tag)
+RETURN t.name, labels(n), count(q) AS questions
+ORDER BY posts DESC 
+LIMIT 5;
+----
+
+== Exploring Users
+
+Top users asking questions:
+
+[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+MATCH (u:User)-[:ASKED]->(q:Question)
+RETURN u.display_name, count(*) AS questions
+ORDER by questions DESC 
+LIMIT 10;
+----
+
+Top users answering:
+
+[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+MATCH (u:User)-[:PROVIDED]->(a:Answer)-[:ANSWERED]->(q:Question)
+RETURN u.display_name as user,COUNT(a) AS answers
+ORDER BY answers DESC LIMIT 10;
+----
+
+Shortest path between users:
+
+[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+MATCH path = allShortestPaths((u1:User {display_name:"alexanoid"})-[*]-(u2:User {display_name:"InverseFalcon"})
+)
+RETURN path LIMIT 1;
+----
+
+== Unanswered Questions
+
+Tags for unanswered questions:
+
+[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+MATCH (q:Question)-[:TAGGED]->(t:Tag)
+WHERE not t.name IN ['neo4j','cypher'] and not (q)<-[:ANSWERED]-()
+RETURN t.name as tag, count(*) as question
+ORDER BY posts desc LIMIT 10;
+----
+
+== Correlation
+
+Tag correlations:
+
+[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
+WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
+RETURN t1.name, t2.name,count(*) as freq
+ORDER BY freq desc LIMIT 10;
+----
+
+== Engagement
+
+User engagement over time:
+
+[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+MATCH (u:User)-[:PROVIDED]->()-[:ANSWERED]->(q:Question)-[:TAGGED]->(t:Tag)
+WHERE u.display_name = "InverseFalcon"
+RETURN apoc.date.format(q.creation_date,'s','yyyy-MM') as month, count(distinct q) as count, collect(distinct t.name) as tags
+ORDER BY month asc
+----
+
+== Virtual Graphs
+
+Project tags via co-occurrence:
+
+[source,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
+----
+MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
+WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
+WITH t1, t2,count(*) as freq  where freq > 3
+RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel
+----
+
+== Further Reading
+
+* https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
+* https://medium.com/open-graphql/build-a-stackoverflow-graphql-api-demo-app-in-10-minutes-69afbf4d037c[Build a StackOverflow GraphQL API & Demo App in 10 Minutes^]
+* https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
+* https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes^]
