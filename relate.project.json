@@ -6,7 +6,7 @@
           "targetNeo4jVersion":"4.3"
       },
       {
-          "scriptFile":"scripts/stackoverflow.cypher",
+          "scriptFile":"scripts/import.cypher",
           "targetNeo4jVersion": "^4.3"
       }
   ]
