@@ -32,7 +32,10 @@ MERGE (owner:User {uuid:coalesce(q.owner.user_id,'deleted')})
   ON CREATE SET owner.display_name = q.owner.display_name
 MERGE (owner)-[:ASKED]->(question)
 // what tags do the questions have
-FOREACH (tagName IN q.tags | MERGE (tag:Tag {name:tagName}) MERGE (question)-[:TAGGED]->(tag))
+FOREACH (tagName IN q.tags | 
+  MERGE (tag:Tag {name:tagName}) 
+    ON CREATE SET tag.link = "https://stackoverflow.com/questions/tagged/" + tag.name
+  MERGE (question)-[:TAGGED]->(tag))
 // who answered the questions?
 FOREACH (a IN q.answers |
    MERGE (question)<-[:ANSWERED]-(answer:Answer {uuid:a.answer_id})
