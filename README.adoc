@@ -1,8 +1,8 @@
-//name of the graph example
+//Stack Overflow 
 :name: template
 //graph example description
 :long-name: Template 
-:description: Template example
+:description: Stack Overflow questions and answers
 //icon representing graph example
 :icon: documentation/img/icon.svg
 //associated search tags, separate multiple tags with comma

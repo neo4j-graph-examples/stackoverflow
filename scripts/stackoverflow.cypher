@@ -1,17 +1,16 @@
-// cypher import code goes here
-
-// the query we're using has an added filter which allows us to get the comments and the answers (&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf)
+// cypher import for stackoverflow dataset. 
+// note that stackoverflow considers > 30 request/sec per IP to be very abusive and will throttle the IP maing such a request
+// the import query looks for results related to the "neo4j" and "cypher" tags
+// The query has an added filter which allows us to get the comments and the answers (&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf)
 
 CREATE CONSTRAINT on (q:Question) ASSERT q.uuid IS UNIQUE;
 CREATE CONSTRAINT on (t:Tag) ASSERT t.name IS UNIQUE;
 CREATE CONSTRAINT on (u:User) ASSERT u.uuid IS UNIQUE;
 CREATE CONSTRAINT on (a:Answer) ASSERT a.uuid IS UNIQUE;
-
-// note that stackoverflow considers > 30 request/sec per IP to be very abusive and will throttle the IP maing such a request
+CREATE CONSTRAINT on (c:Comment) ASSERT c.uuid IS UNIQUE;
 
 
 // look for several pages of questions
-
 WITH ["neo4j","cypher"] as tags 
 UNWIND tags as tagName
 UNWIND range(1,10) as page // careful with throttling
@@ -47,4 +46,11 @@ FOREACH (a IN q.answers |
    MERGE (answerer:User {uuid:coalesce(a.owner.user_id,'deleted')}) 
     ON CREATE SET answerer.display_name = a.owner.display_name
    MERGE (answer)<-[:PROVIDED]-(answerer)
+)
+FOREACH (c in q.comments |
+  MERGE (question)<-[:COMMENTED_ON]-(comment:Comment {uuid:c.comment_id})
+    ON CREATE SET comment.link=c.link, comment.score=c.score
+  MERGE (commenter:User {uuid:coalesce(c.owner.user_id,'deleted')}) 
+    ON CREATE SET commenter.display_name = c.owner.display_name
+  MERGE (comment)<-[:COMMENTED]-(commenter)
 );
