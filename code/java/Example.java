@@ -14,18 +14,18 @@ public class Example {
     Driver driver = GraphDatabase.driver("neo4j+s://demo.neo4jlabs.com:7687",
               AuthTokens.basic("mUser","s3cr3t"));
 
-    try (Session session = driver.session(SessionConfig.forDatabase("movies"))) {
+    try (Session session = driver.session(SessionConfig.forDatabase("stackoverflow"))) {
 
       String cypherQuery =
-        "MATCH (m:Movie {title:$movieTitle})<-[:ACTED_IN]-(a:Person) RETURN a.name as actorName";
+        "MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User) RETURN u.display_name as answerer";
 
       var result = session.readTransaction(
         tx -> tx.run(cypherQuery, 
-                parameters("movieTitle","The Matrix"))
+                parameters("tagName","neo4j"))
             .list());
 
       for (Record record : result) {
-        System.out.println(record.get("actorName").asString());
+        System.out.println(record.get("answerer").asString());
       }
     }
     driver.close();

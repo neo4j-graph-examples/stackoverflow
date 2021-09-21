@@ -1,5 +1,5 @@
 #/bin/sh
-NAME=${1-movies}
+NAME=${1-stackoverflow}
 TARGETPATH=${2-/tmp}
 TARGET="$TARGETPATH/$NAME"
 if [ ! -d $TARGET ]; then

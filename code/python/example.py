@@ -8,14 +8,14 @@ driver = GraphDatabase.driver(
   auth=basic_auth("mUser", "s3cr3t"))
 
 cypher_query = '''
-MATCH (m:Movie {title:$movieTitle})<-[:ACTED_IN]-(a:Person) RETURN a.name as actorName
+MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User) RETURN u.display_name as answerer
 '''
 
-with driver.session(database="movies") as session:
+with driver.session(database="stackoverflow") as session:
   results = session.read_transaction(
     lambda tx: tx.run(cypher_query,
-                      movieTitle="The Matrix").data())
+                      tagName="neo4j").data())
   for record in results:
-    print(record['actorName'])
+    print(record['answerer'])
 
 driver.close()

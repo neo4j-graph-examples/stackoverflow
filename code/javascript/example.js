@@ -7,17 +7,17 @@ const driver = neo4j.driver('neo4j+s://demo.neo4jlabs.com:7687',
 
 const query =
   `
-  MATCH (m:Movie {title:$movieTitle})<-[:ACTED_IN]-(a:Person) RETURN a.name as actorName
+  MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User) RETURN u.display_name as answerer
   `;
 
-const params = {"movieTitle": "The Matrix"};
+const params = {"tagName": "neo4j"};
 
-const session = driver.session({database:"movies"});
+const session = driver.session({database:"stackoverflow"});
 
 session.run(query, params)
   .then((result) => {
     result.records.forEach((record) => {
-        console.log(record.get('actorName'));
+        console.log(record.get('answerer'));
     });
     session.close();
     driver.close();

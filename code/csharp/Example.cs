@@ -18,19 +18,19 @@ namespace dotnet {
 
     var cypherQuery =
       @"
-      MATCH (m:Movie {title:$movieTitle})<-[:ACTED_IN]-(a:Person) RETURN a.name as actorName
+      MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User) RETURN u.display_name as answerer
       ";
 
-    var session = driver.AsyncSession(o => o.WithDatabase("movies"));
+    var session = driver.AsyncSession(o => o.WithDatabase("stackoverflow"));
     var result = await session.ReadTransactionAsync(async tx => {
       var r = await tx.RunAsync(cypherQuery, 
-              new { movieTitle="The Matrix"});
+              new { tagName="neo4j"});
       return await r.ToListAsync();
     });
 
     await session?.CloseAsync();
     foreach (var row in result)
-      Console.WriteLine(row["actorName"].As<string>());
+      Console.WriteLine(row["answerer"].As<string>());
 	  
     }
   }

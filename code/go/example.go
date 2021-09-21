@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	results, err := runQuery("neo4j+s://demo.neo4jlabs.com:7687", "movies", "mUser", "s3cr3t")
+	results, err := runQuery("neo4j+s://demo.neo4jlabs.com:7687", "stackoverflow", "mUser", "s3cr3t")
 	if err != nil {
 		panic(err)
 	}
@@ -30,16 +30,16 @@ func runQuery(uri, database, username, password string) (result []string, err er
 	results, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			`
-			MATCH (m:Movie {title:$movieTitle})<-[:ACTED_IN]-(a:Person) RETURN a.name as actorName
+			MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User) RETURN u.display_name as answerer
 			`, map[string]interface{}{
-				"movieTitle": "The Matrix",
+				"tagName": "neo4j",
 			})
 		if err != nil {
 			return nil, err
 		}
 		var arr []string
 		for result.Next() {
-			value, found := result.Record().Get("actorName")
+			value, found := result.Record().Get("answerer")
 			if found {
 				arr = append(arr, value.(string))
 			}
