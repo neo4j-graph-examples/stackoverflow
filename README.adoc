@@ -14,9 +14,9 @@
 //data flat files (csv, json, etc). Set to false if not used
 :data: false
 //use a script to generate/process data? Set to either path for script, or false if not used
-:use-load-script: scripts/import.cypher
+:use-load-script: false
 //use a graph dump file for initial data set? Set to either path for dump file, or false if not used
-:use-dump-file: false
+:use-dump-file: data/icij-panama-papers-40.dump
 //if a zip file exists for the data, specify here. Set to false if not used
 :zip-file: false
 //use a plugin for the database, separate multiple plugins with comma. 'public' plugins are apoc, graph-algorithms. 
@@ -53,8 +53,8 @@ image::{example}[width=600]
 
 .Example Query:
 
-:param-name: param
-:param-value: param-value
+:param-name: tagName
+:param-value: neo4j
 
 [source,cypher,role=query-example-params,subs=+attributes]
 ----
@@ -63,8 +63,8 @@ image::{example}[width=600]
 
 [source,cypher,role=query-example,param-name={param-name},param-value={param-value},result-column=name,expected-result="A value"]
 ----
-MATCH (n:Tag {name:$param})
-RETURN n.name as name
+MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User)
+RETURN u.display_name as answerer
 ----
 
 === Setup
