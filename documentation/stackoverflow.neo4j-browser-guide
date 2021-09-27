@@ -1,81 +1,182 @@
-﻿== Exploring Stackoverflow
-:images: {img}
+<style type="text/css" media="screen">
+/*
+.nodes-image {
+	margin:-100;
+}
+*/	
+@import url("//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css");
 
-Every developer has a tab open https://stackoverflow.com/[Stack Overflow^], the massively popular question-and-answer site. This dataset explores users, questions, answers, comments, and tags related to the `neo4j`- and `cypher`- tagged questions on Stack Overflow.
+.imageblock .content img, .image img {max-width: 900px;max-height: 300px;}
+.deck h3, .deck h4 {display: block !important;margin-bottom:8px;margin-top:5px;}
+.listingblock {margin:8px;}
+.pull-bottom {position:relative;bottom:1em;}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note:before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip:before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning:before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution:before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important:before{content:"\f06a";color:#bf0000}
+.admonitionblock.note.speaker { display:none; }
+</style>
+<style type="text/css" media="screen">
+/* #editor.maximize-editor .CodeMirror-code { font-size:24px; line-height:26px; } */
+</style>
+<article class="guide" ng-controller="AdLibDataController">
+  <carousel class="deck container-fluid">
+    <!--slide class="row-fluid">
+      <div class="col-sm-3">
+        <h3>Exploring Stackoverflow</h3>
+        <p class="lead">Information</p>
+			<!dl>
+				
+				
+				
+				
+				
+			</dl>
+		</div>
+      <div class="col-sm-9">
+        <figure>
+          <img style="width:300px" src=""/>
+        </figure>
+      </div>
+    </slide-->
+    
 
-This guide will show you how to:
 
-* Create: load questions, answers, comments, tags, and users into the graph
-* Find: Find unanswered questions
-* Query: discover the most engaged users and most popular questions
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>Exploring Stackoverflow</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>Every developer has a tab open <a href="https://stackoverflow.com/" target="_blank">Stack Overflow</a>, the massively popular question-and-answer site. This dataset explores users, questions, answers, comments, and tags related to the <code>neo4j</code>- and <code>cypher</code>- tagged questions on Stack Overflow.</p>
+</div>
+<div class="paragraph">
+<p>This guide will show you how to:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create: load questions, answers, comments, tags, and users into the graph</p>
+</li>
+<li>
+<p>Find: Find unanswered questions</p>
+</li>
+<li>
+<p>Query: discover the most engaged users and most popular questions</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Throughout the guide you&#8217;ll find Cypher statements that you can execute, by clicking on them and then executing them by hitting the run button.</p>
+</div>
+	</div>
+  </div>
+</slide>
 
-Throughout the guide you'll find Cypher statements that you can execute, by clicking on them and then executing them by hitting the run button.
 
-== The Model
 
-image::{images}/model.svg[float=right]
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>The Model</h3>
+    <br/>
+    <div>
+      <div class="imageblock" style="float: right;">
+<div class="content">
+<img src="https://guides.neo4j.com/sandbox/stackoverflow/img/model.svg" alt="model">
+</div>
+</div>
 
-=== Nodes
 
-We model the `Users`, `Questions`, `Answers`, `Comments`, and `Tags` as nodes. 
 
-=== Relationships
+   <h4>Nodes</h4>
+   <div class="paragraph">
+<p>We model the <code>Users</code>, <code>Questions</code>, <code>Answers</code>, <code>Comments</code>, and <code>Tags</code> as nodes.</p>
+</div>
 
-Users ask questions, comment, and provide answers.
 
-`(:User)-[:ASKED]->(:Question)`
-`(:User)-[:COMMENTED]->(:Comment)`
-`(:User)-[:PROVIDED]->(:Answer)`
 
-Answers attempt to answer questions, comments are made on questions, and questions are associated with tags.  
+   <h4>Relationships</h4>
+   <div class="paragraph">
+<p>Users ask questions, comment, and provide answers.</p>
+</div>
+<div class="paragraph">
+<p><code>(:User)-[:ASKED]&#8594;(:Question)</code>
+<code>(:User)-[:COMMENTED]&#8594;(:Comment)</code>
+<code>(:User)-[:PROVIDED]&#8594;(:Answer)</code></p>
+</div>
+<div class="paragraph">
+<p>Answers attempt to answer questions, comments are made on questions, and questions are associated with tags.</p>
+</div>
+<div class="paragraph">
+<p><code>(:Answer)-[:ANSWERED]&#8594;(:Question)</code>
+<code>(:Comment)-[:COMMENTED_ON]&#8594;(:Question)</code>
+<code>(:Question)-[:TAGGED]&#8594;(:Tag)</code></p>
+</div>
+<div class="paragraph">
+<p>If you want to see it yourself, run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->CALL db.schema.visualization;<!--/code--></pre>
+</div>
+</div>
+	</div>
+  </div>
+</slide>
 
-`(:Answer)-[:ANSWERED]->(:Question)`
-`(:Comment)-[:COMMENTED_ON]->(:Question)`
-`(:Question)-[:TAGGED]->(:Tag)`
 
-If you want to see it yourself, run:
 
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
----
-CALL db.schema.visualization;
----
-
-== Load JSON Import
-
-Update this dataset using `apoc.load.json`. Run the query as-is or add a tag to the `tags` array. 
-
-//setup
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-// look for several pages of questions
-WITH ["neo4j","cypher"] as tags 
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>Load JSON Import</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>There is already data preloaded in this graph, if you want to extend (more pages or other tags) or update it with the most recent questions, please modify and run the statement below.</p>
+</div>
+<div class="paragraph">
+<p>Update this dataset using <code>apoc.load.json</code>. Run the query as-is to update or add a tag to the <code>tags</code> array to extend.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->// look for several pages of questions
+WITH ["neo4j","cypher"] as tags
 UNWIND tags as tagName
-UNWIND range(1,2) as page // careful with throttling
-WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&pagesize=100&order=desc&sort=creation&tagged="+tagName+"&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
+UNWIND range(1,2) as page
+
+WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&amp;pagesize=100&amp;order=desc&amp;sort=creation&amp;tagged="+tagName+"&amp;site=stackoverflow&amp;filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
+
 CALL apoc.load.json(url) YIELD value
-CALL apoc.util.sleep(250)
+CALL apoc.util.sleep(250)  // careful with throttling
+
 UNWIND value.items AS q
+
 // create the questions
 MERGE (question:Question {uuid:q.question_id})
-  ON CREATE SET question.title = q.title, 
-  	question.link = q.share_link, 
-  	question.creation_date = q.creation_date, 
-  	question.accepted_answer_id=q.accepted_answer_id, 
+  ON CREATE SET question.title = q.title,
+  	question.link = q.share_link,
+  	question.creation_date = q.creation_date,
+  	question.accepted_answer_id=q.accepted_answer_id,
   	question.view_count=q.view_count,
    	question.answer_count=q.answer_count,
    	question.body_markdown=q.body_markdown
- // who asked the question
+
+// who asked the question
 MERGE (owner:User {uuid:coalesce(q.owner.user_id,'deleted')})
   ON CREATE SET owner.display_name = q.owner.display_name
-MERGE (owner)-[:ASKED]->(question)
+MERGE (owner)-[:ASKED]-&gt;(question)
+
 // what tags do the questions have
-FOREACH (tagName IN q.tags | 
-  MERGE (tag:Tag {name:tagName}) 
+FOREACH (tagName IN q.tags |
+  MERGE (tag:Tag {name:tagName})
     ON CREATE SET tag.link = "https://stackoverflow.com/questions/tagged/" + tag.name
-  MERGE (question)-[:TAGGED]->(tag))
+  MERGE (question)-[:TAGGED]-&gt;(tag))
+
 // who answered the questions?
 FOREACH (a IN q.answers |
-   MERGE (question)<-[:ANSWERED]-(answer:Answer {uuid:a.answer_id})
+   MERGE (question)&lt;-[:ANSWERED]-(answer:Answer {uuid:a.answer_id})
     ON CREATE SET answer.is_accepted = a.is_accepted,
     answer.link=a.share_link,
     answer.title=a.title,
@@ -83,148 +184,276 @@ FOREACH (a IN q.answers |
     answer.score=a.score,
    	answer.favorite_score=a.favorite_score,
    	answer.view_count=a.view_count
-   MERGE (answerer:User {uuid:coalesce(a.owner.user_id,'deleted')}) 
+   MERGE (answerer:User {uuid:coalesce(a.owner.user_id,'deleted')})
     ON CREATE SET answerer.display_name = a.owner.display_name
-   MERGE (answer)<-[:PROVIDED]-(answerer)
+   MERGE (answer)&lt;-[:PROVIDED]-(answerer)
 )
+
+// who commented ont he question
 FOREACH (c in q.comments |
-  MERGE (question)<-[:COMMENTED_ON]-(comment:Comment {uuid:c.comment_id})
+  MERGE (question)&lt;-[:COMMENTED_ON]-(comment:Comment {uuid:c.comment_id})
     ON CREATE SET comment.link=c.link, comment.score=c.score
-  MERGE (commenter:User {uuid:coalesce(c.owner.user_id,'deleted')}) 
+  MERGE (commenter:User {uuid:coalesce(c.owner.user_id,'deleted')})
     ON CREATE SET commenter.display_name = c.owner.display_name
-  MERGE (comment)<-[:COMMENTED]-(commenter)
-);
-----
+  MERGE (comment)&lt;-[:COMMENTED]-(commenter)
+);<!--/code--></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Read More: <a href="https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow" target="_blank">Import from StackOverflow API</a></p>
+</div>
+	</div>
+  </div>
+</slide>
 
-Read More: https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
 
-=== Basic Queries
 
-Labels in the graph and counts for each label:
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>Basic Queries</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>Labels in the graph and counts for each label:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (n)
+RETURN labels(n) as label, count(*);<!--/code--></pre>
+</div>
+</div>
+	</div>
+  </div>
+</slide>
 
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH (n)
-RETURN labels(n) as label, count(*);
-----
 
-== Top Tags:
 
-Which are the most popular tags?
-
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH (q:Question)-[:TAGGED]->(t:Tag)
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>Top Tags:</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>Which are the most popular tags?</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (q:Question)-[:TAGGED]-&gt;(t:Tag)
 RETURN t.name,  count(q) AS questions
 ORDER BY questions DESC
-LIMIT 5;
-----
+LIMIT 5;<!--/code--></pre>
+</div>
+</div>
+	</div>
+  </div>
+</slide>
 
-== Exploring Users
 
-Who are the top users asking questions?
 
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH (u:User)-[:ASKED]->(q:Question)
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>Exploring Users</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>Who are the top users asking questions?</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (u:User)-[:ASKED]-&gt;(q:Question)
 RETURN u.display_name, count(*) AS questions
-ORDER by questions DESC 
-LIMIT 10;
-----
-
-Who's answering? 
-
-Ordered by number of answers 
-
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH (u:User)-[:PROVIDED]->(a:Answer)-[:ANSWERED]->(q:Question)
+ORDER by questions DESC
+LIMIT 10;<!--/code--></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Who&#8217;s answering?</p>
+</div>
+<div class="paragraph">
+<p>Ordered by number of answers</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (u:User)-[:PROVIDED]-&gt;(a:Answer)-[:ANSWERED]-&gt;(q:Question)
 RETURN u.display_name as user,COUNT(a) AS answers, avg(a.score) as avg_score
-ORDER BY answers DESC LIMIT 10;
-----
-
-Ordered by max score, filtered for a particular tag
-
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH (u:User)-[:PROVIDED]->(a:Answer)-[:ANSWERED]->(q:Question)-[:TAGGED]->(:Tag {name:"cypher"})
+ORDER BY answers DESC LIMIT 10;<!--/code--></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Ordered by max score, filtered for a particular tag</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (u:User)-[:PROVIDED]-&gt;(a:Answer)-[:ANSWERED]-&gt;
+      (q:Question)-[:TAGGED]-&gt;(:Tag {name:"cypher"})
 RETURN u.display_name as user,COUNT(a) AS answers, max(a.score) as max_score
-ORDER BY avg_score DESC LIMIT 10;
-----
-
-What's the shortest path between users?
-
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH path = allShortestPaths((u1:User {display_name:"alexanoid"})-[*]-(u2:User {display_name:"InverseFalcon"})
+ORDER BY avg_score DESC LIMIT 10;<!--/code--></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>What&#8217;s the shortest path between users?</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH path = allShortestPaths(
+  (u1:User {display_name:"alexanoid"})-[*]-(u2:User {display_name:"InverseFalcon"})
 )
-RETURN path LIMIT 1;
-----
+RETURN path LIMIT 1;<!--/code--></pre>
+</div>
+</div>
+	</div>
+  </div>
+</slide>
 
-== User Engagement
 
-User engagement over time:
 
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH (u:User)-[:PROVIDED]->()-[:ANSWERED]->(q:Question)-[:TAGGED]->(t:Tag)
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>User Engagement</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>User engagement over time:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (u:User)-[:PROVIDED]-&gt;()-[:ANSWERED]-&gt;
+      (q:Question)-[:TAGGED]-&gt;(t:Tag)
 WHERE u.display_name = "InverseFalcon"
-RETURN apoc.date.format(q.creation_date,'s','yyyy-MM') as month, count(distinct q) as count, collect(distinct t.name) as tags
-ORDER BY month asc
-----
+RETURN apoc.date.format(q.creation_date,'s','yyyy-MM') as month,
+       count(distinct q) as count, collect(distinct t.name) as tags
+ORDER BY month asc<!--/code--></pre>
+</div>
+</div>
+	</div>
+  </div>
+</slide>
 
-== Unanswered Questions
 
-What are the tags for unanswered questions?
 
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH (q:Question)-[:TAGGED]->(t:Tag)
-WHERE not t.name IN ['neo4j','cypher'] AND NOT (q)<-[:ANSWERED]-()
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>Unanswered Questions</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>What are the tags for unanswered questions?</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (q:Question)-[:TAGGED]-&gt;(t:Tag)
+WHERE NOT t.name IN ['neo4j','cypher']
+  AND NOT (q)&lt;-[:ANSWERED]-()
 RETURN t.name as tag, count(q) AS questions
-ORDER BY questions DESC LIMIT 10;
-----
+ORDER BY questions DESC LIMIT 10;<!--/code--></pre>
+</div>
+</div>
+	</div>
+  </div>
+</slide>
 
-== How are tags related to other tags?
 
-Tag correlations:
 
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
-WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>How are tags related to other tags?</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>Tag correlations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (t1:Tag)&lt;-[:TAGGED]-()-[:TAGGED]-&gt;(t2:Tag)
+WHERE id(t1) &lt; id(t2) and t1.name &lt;&gt; 'neo4j' and t2.name &lt;&gt; 'neo4j'
 RETURN t1.name, t2.name,count(*) as freq
-ORDER BY freq desc LIMIT 10;
-----
+ORDER BY freq desc LIMIT 10;<!--/code--></pre>
+</div>
+</div>
+	</div>
+  </div>
+</slide>
 
-== Virtual Graphs: Tags
 
-Project tags via co-occurrence:
 
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
-WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
-WITH t1, t2,count(*) as freq  where freq > 3
-RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel
-----
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>Virtual Graphs: Tags</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>Project tags via co-occurrence with virtual relationships.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (t1:Tag)&lt;-[:TAGGED]-()-[:TAGGED]-&gt;(t2:Tag)
+WHERE id(t1) &lt; id(t2) and t1.name &lt;&gt; 'neo4j' and t2.name &lt;&gt; 'neo4j'
+WITH t1, t2,count(*) as freq  where freq &gt; 3
+RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel<!--/code--></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to you can also materialize those relationships in the graph and then explore the data in Browser or Bloom visually forming clusters.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (t1:Tag)&lt;-[:TAGGED]-()-[:TAGGED]-&gt;(t2:Tag)
+WHERE id(t1) &lt; id(t2) and t1.name &lt;&gt; 'neo4j' and t2.name &lt;&gt; 'neo4j'
+WITH t1, t2,count(*) as freq  where freq &gt; 3
+MERGE (t1)-[:OCCURRED]-(t2) SET r.freq=freq
+RETURN count(*)<!--/code--></pre>
+</div>
+</div>
+	</div>
+  </div>
+</slide>
 
-== Virtual Graphs: Social Network
 
-We can do something similar for commenters - what users keep on running into each other in the comments? 
 
-[source,cypher,highlight,pre-scrollable,code,runnable,standalone-example,ng-binding]
-----
-MATCH p1=(u1:User)-[:COMMENTED]->(c1:Comment)-[:COMMENTED_ON]-(q:Question)
-MATCH p2=(u2:User)-[:COMMENTED]->(c2:Comment)-[:COMMENTED_ON]-(q)
-WHERE id(u1) < id(u2)
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>Virtual Graphs: Social Network</h3>
+    <br/>
+    <div>
+      <div class="paragraph">
+<p>We can do something similar for commenters - what users keep on running into each other in the comments?</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH p1=(u1:User)-[:COMMENTED]-&gt;(c1:Comment)-[:COMMENTED_ON]-(q:Question)
+MATCH p2=(u2:User)-[:COMMENTED]-&gt;(c2:Comment)-[:COMMENTED_ON]-(q)
+WHERE id(u1) &lt; id(u2)
 WITH u1, u2, count(distinct q) as freq
-WHERE freq > 2
-RETURN u1, u2, apoc.create.vRelationship(u1,'OCCURRED',{freq:freq},u2) as rel
-----
+WHERE freq &gt; 2
+RETURN u1, u2, apoc.create.vRelationship(u1,'OCCURRED',{freq:freq},u2) as rel<!--/code--></pre>
+</div>
+</div>
+	</div>
+  </div>
+</slide>
 
-== Further Reading
 
-* https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
-* https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
-* https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes^]
+
+<slide class="row-fluid">
+  <div class="col-sm-12">
+    <h3>Further Reading</h3>
+    <br/>
+    <div>
+      <div class="ulist">
+<ul>
+<li>
+<p><a href="https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow" target="_blank">Import from StackOverflow API</a></p>
+</li>
+<li>
+<p><a href="https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/" target="_blank">Exploring StackOverflow data with Michael Hunger – Twitch stream</a></p>
+</li>
+<li>
+<p><a href="https://neo4j.com/blog/import-10m-stack-overflow-questions/" target="_blank">Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes</a></p>
+</li>
+</ul>
+</div>
+	</div>
+  </div>
+</slide>
+  </carousel>
+</article>

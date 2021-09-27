@@ -1,6 +1,6 @@
 {
-    "name": "template",
-    "description":"Template example",
+    "name": "stackoverflow",
+    "description":"StackOverflow Analysis - Questions, Answers, Tags, Comments",
     "dbms": [
       {
           "targetNeo4jVersion":"4.3"

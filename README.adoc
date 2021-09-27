@@ -34,7 +34,6 @@
 :model: documentation/img/model.svg
 :example: documentation/img/example.png
 
-:todo: false
 image::{icon}[width=100]
 
 == {long-name} Graph Example
@@ -61,10 +60,10 @@ image::{example}[width=600]
 :param {param-name} => "{param-value}"
 ----
 
-[source,cypher,role=query-example,param-name={param-name},param-value={param-value},result-column=name,expected-result="A value"]
+[source,cypher,role=query-example,param-name={param-name},param-value={param-value},result-column=answerer,expected-result="A value"]
 ----
 MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User)
-RETURN u.display_name as answerer
+RETURN u.display_name as answerer LIMIT 5
 ----
 
 === Setup
