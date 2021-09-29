@@ -161,7 +161,7 @@ Ordered by max score, filtered for a particular tag
 MATCH (u:User)-[:PROVIDED]->(a:Answer)-[:ANSWERED]->
       (q:Question)-[:TAGGED]->(:Tag {name:"cypher"})
 RETURN u.display_name as user,COUNT(a) AS answers, max(a.score) as max_score
-ORDER BY avg_score DESC LIMIT 10;
+ORDER BY max_score DESC LIMIT 10;
 ----
 
 What's the shortest path between users?
@@ -232,7 +232,7 @@ If you want to you can also materialize those relationships in the graph and the
 MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
 WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
 WITH t1, t2,count(*) as freq  where freq > 3
-MERGE (t1)-[:OCCURRED]-(t2) SET r.freq=freq
+MERGE (t1)-[r:OCCURRED]-(t2) SET r.freq=freq
 RETURN count(*)
 ----
 

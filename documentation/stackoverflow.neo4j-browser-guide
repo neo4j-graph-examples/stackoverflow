@@ -287,7 +287,7 @@ ORDER BY answers DESC LIMIT 10;<!--/code--></pre>
 <pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (u:User)-[:PROVIDED]-&gt;(a:Answer)-[:ANSWERED]-&gt;
       (q:Question)-[:TAGGED]-&gt;(:Tag {name:"cypher"})
 RETURN u.display_name as user,COUNT(a) AS answers, max(a.score) as max_score
-ORDER BY avg_score DESC LIMIT 10;<!--/code--></pre>
+ORDER BY max_score DESC LIMIT 10;<!--/code--></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -400,7 +400,7 @@ RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel<!--
 <pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (t1:Tag)&lt;-[:TAGGED]-()-[:TAGGED]-&gt;(t2:Tag)
 WHERE id(t1) &lt; id(t2) and t1.name &lt;&gt; 'neo4j' and t2.name &lt;&gt; 'neo4j'
 WITH t1, t2,count(*) as freq  where freq &gt; 3
-MERGE (t1)-[:OCCURRED]-(t2) SET r.freq=freq
+MERGE (t1)-[r:OCCURRED]-(t2) SET r.freq=freq
 RETURN count(*)<!--/code--></pre>
 </div>
 </div>
