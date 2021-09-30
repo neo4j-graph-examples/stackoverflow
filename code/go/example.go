@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	results, err := runQuery("neo4j+s://demo.neo4jlabs.com:7687", "stackoverflow", "mUser", "s3cr3t")
+	results, err := runQuery("bolt://<HOST>:<BOLTPORT>", "neo4j", "<USERNAME>", "<PASSWORD>")
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +30,8 @@ func runQuery(uri, database, username, password string) (result []string, err er
 	results, err := session.ReadTransaction(func(transaction neo4j.Transaction) (interface{}, error) {
 		result, err := transaction.Run(
 			`
-			MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User) RETURN u.display_name as answerer
+			MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User)
+			RETURN u.display_name as answerer LIMIT 5
 			`, map[string]interface{}{
 				"tagName": "neo4j",
 			})

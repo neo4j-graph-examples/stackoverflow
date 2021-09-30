@@ -13,15 +13,16 @@ using Neo4j.Driver;
 namespace dotnet {
   class Example {
   static async Task Main() {
-    var driver = GraphDatabase.Driver("neo4j+s://demo.neo4jlabs.com:7687", 
-                    AuthTokens.Basic("mUser", "s3cr3t"));
+    var driver = GraphDatabase.Driver("bolt://<HOST>:<BOLTPORT>", 
+                    AuthTokens.Basic("<USERNAME>", "<PASSWORD>"));
 
     var cypherQuery =
       @"
-      MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User) RETURN u.display_name as answerer
+      MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User)
+      RETURN u.display_name as answerer LIMIT 5
       ";
 
-    var session = driver.AsyncSession(o => o.WithDatabase("stackoverflow"));
+    var session = driver.AsyncSession(o => o.WithDatabase("neo4j"));
     var result = await session.ReadTransactionAsync(async tx => {
       var r = await tx.RunAsync(cypherQuery, 
               new { tagName="neo4j"});

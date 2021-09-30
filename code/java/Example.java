@@ -11,13 +11,14 @@ public class Example {
 
   public static void main(String...args) {
 
-    Driver driver = GraphDatabase.driver("neo4j+s://demo.neo4jlabs.com:7687",
-              AuthTokens.basic("mUser","s3cr3t"));
+    Driver driver = GraphDatabase.driver("bolt://<HOST>:<BOLTPORT>",
+              AuthTokens.basic("<USERNAME>","<PASSWORD>"));
 
-    try (Session session = driver.session(SessionConfig.forDatabase("stackoverflow"))) {
+    try (Session session = driver.session(SessionConfig.forDatabase("neo4j"))) {
 
       String cypherQuery =
-        "MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User) RETURN u.display_name as answerer";
+        "MATCH (t:Tag {name:$tagName})<-[:TAGGED]-(q:Question)<-[:ANSWERED]-(a:Answer {is_accepted:true})<-[:PROVIDED]-(u:User)\n" +
+        "RETURN u.display_name as answerer LIMIT 5";
 
       var result = session.readTransaction(
         tx -> tx.run(cypherQuery, 
