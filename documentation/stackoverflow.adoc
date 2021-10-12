@@ -54,7 +54,7 @@ WITH ["neo4j","cypher"] as tags
 UNWIND tags as tagName
 UNWIND range(1,2) as page
 
-WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&pagesize=100&order=desc&sort=creation&tagged="+tagName+"&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
+WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&pagesize=50&order=desc&sort=creation&tagged="+tagName+"&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
 
 CALL apoc.load.json(url) YIELD value
 CALL apoc.util.sleep(250)  // careful with throttling
