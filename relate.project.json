@@ -3,11 +3,9 @@
     "description":"StackOverflow Analysis - Questions, Answers, Tags, Comments",
     "dbms": [
       {
-          "targetNeo4jVersion":"4.3"
-      },
-      {
           "scriptFile":"scripts/import.cypher",
-          "targetNeo4jVersion": "^4.3"
+          "targetNeo4jVersion": "^4.3",
+          "plugins": ["apoc"]
       }
   ]
 }
