@@ -33,6 +33,8 @@
 //guide for modeling decisions. Should be friendly enough to be converted into various document formats
 :model: documentation/img/model.svg
 :example: documentation/img/example.png
+:nodes: 6193
+:relationships: 11540
 
 image::{icon}[width=100]
 
@@ -43,6 +45,8 @@ Description: _{description}_
 ifeval::[{todo} != false]
 To Do: {todo}
 endif::[]
+
+Nodes {nodes} Relationships {relationships}
 
 .Model
 image::{model}[]
