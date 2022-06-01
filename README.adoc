@@ -29,7 +29,7 @@
 //guide for the graph example. Should be friendly enough to be converted into various document formats
 :guide: documentation/stackoverflow.neo4j-browser-guide
 //temporary for rendered guides
-:rendered-guide: https://guides.neo4j.com/{name}/index.html
+:rendered-guide: https://guides.neo4j.com/sandbox/{name}
 //guide for modeling decisions. Should be friendly enough to be converted into various document formats
 :model: documentation/img/model.svg
 :example: documentation/img/example.png
