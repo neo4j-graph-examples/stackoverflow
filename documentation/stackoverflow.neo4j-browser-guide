@@ -6,7 +6,7 @@
 */	
 @import url("//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css");
 
-.imageblock .content img, .image img {max-width: 900px;max-height: 300px;}
+.imageblock .content img, .image img {max-width: 100%;}
 .deck h3, .deck h4 {display: block !important;margin-bottom:8px;margin-top:5px;}
 .listingblock {margin:8px;}
 .pull-bottom {position:relative;bottom:1em;}
@@ -49,7 +49,12 @@
     <h3>Exploring Stackoverflow</h3>
     <br/>
     <div>
-      <div class="paragraph">
+      <div class="imageblock" style="float: right;">
+<div class="content">
+<img src="https://guides.neo4j.com/sandbox/stackoverflow/img/so_logo.svg" alt="so logo" width="200px">
+</div>
+</div>
+<div class="paragraph">
 <p>Every developer has a tab open <a href="https://stackoverflow.com/" target="_blank">Stack Overflow</a>, the massively popular question-and-answer site. This dataset explores users, questions, answers, comments, and tags related to the <code>neo4j</code>- and <code>cypher</code>- tagged questions on Stack Overflow.</p>
 </div>
 <div class="paragraph">
@@ -82,9 +87,9 @@
     <h3>The Model</h3>
     <br/>
     <div>
-      <div class="imageblock" style="float: right;">
+      <div class="imageblock">
 <div class="content">
-<img src="https://guides.neo4j.com/sandbox/stackoverflow/img/model.svg" alt="model">
+<img src="https://guides.neo4j.com/sandbox/stackoverflow/img/model.svg" alt="model" width="100%">
 </div>
 </div>
 
@@ -146,7 +151,7 @@ WITH ["neo4j","cypher"] as tags
 UNWIND tags as tagName
 UNWIND range(1,2) as page
 
-WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&amp;pagesize=100&amp;order=desc&amp;sort=creation&amp;tagged="+tagName+"&amp;site=stackoverflow&amp;filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
+WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&amp;pagesize=25&amp;order=desc&amp;sort=creation&amp;tagged="+tagName+"&amp;site=stackoverflow&amp;filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
 
 CALL apoc.load.json(url) YIELD value
 CALL apoc.util.sleep(250)  // careful with throttling
@@ -214,12 +219,23 @@ FOREACH (c in q.comments |
     <br/>
     <div>
       <div class="paragraph">
-<p>Labels in the graph and counts for each label:</p>
+<p>Labels in the graph and counts for each:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (n)
-RETURN labels(n) as label, count(*);<!--/code--></pre>
+RETURN labels(n) as label, count(*) as freq
+ORDER BY freq DESC;<!--/code--></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Relationship-types in the graph and counts for eachabel:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (n)
+RETURN labels(n) as label, count(*) as freq
+ORDER BY freq DESC;<!--/code--></pre>
 </div>
 </div>
 	</div>
@@ -230,7 +246,7 @@ RETURN labels(n) as label, count(*);<!--/code--></pre>
 
 <slide class="row-fluid">
   <div class="col-sm-12">
-    <h3>Top Tags:</h3>
+    <h3>Top Tags</h3>
     <br/>
     <div>
       <div class="paragraph">

@@ -1,6 +1,8 @@
 ﻿== Exploring Stackoverflow
 :images: {img}
 
+image::{img}/so_logo.svg[float=right,width=200px]
+
 Every developer has a tab open https://stackoverflow.com/[Stack Overflow^], the massively popular question-and-answer site. This dataset explores users, questions, answers, comments, and tags related to the `neo4j`- and `cypher`- tagged questions on Stack Overflow.
 
 This guide will show you how to:
@@ -13,7 +15,7 @@ Throughout the guide you'll find Cypher statements that you can execute, by clic
 
 == The Model
 
-image::{images}/model.svg[float=right]
+image::{images}/model.svg[width=100%]
 
 === Nodes
 
@@ -54,7 +56,7 @@ WITH ["neo4j","cypher"] as tags
 UNWIND tags as tagName
 UNWIND range(1,2) as page
 
-WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&pagesize=50&order=desc&sort=creation&tagged="+tagName+"&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
+WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&pagesize=25&order=desc&sort=creation&tagged="+tagName+"&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
 
 CALL apoc.load.json(url) YIELD value
 CALL apoc.util.sleep(250)  // careful with throttling
@@ -111,15 +113,25 @@ Read More: https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-
 
 == Basic Queries
 
-Labels in the graph and counts for each label:
+Labels in the graph and counts for each:
 
 [source,cypher]
 ----
 MATCH (n)
-RETURN labels(n) as label, count(*);
+RETURN labels(n) as label, count(*) as freq
+ORDER BY freq DESC;
 ----
 
-== Top Tags:
+Relationship-types in the graph and counts for eachabel:
+
+[source,cypher]
+----
+MATCH (n)
+RETURN labels(n) as label, count(*) as freq
+ORDER BY freq DESC;
+----
+
+== Top Tags
 
 Which are the most popular tags?
 
