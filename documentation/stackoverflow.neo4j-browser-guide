@@ -233,8 +233,8 @@ ORDER BY freq DESC;<!--/code--></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH (n)
-RETURN labels(n) as label, count(*) as freq
+<pre mode="cypher"  class="highlight pre-scrollable programlisting cm-s-neo code runnable standalone-example ng-binding" data-lang="cypher" lang="cypher"><!--code class="cypher language-cypher"-->MATCH ()-[r]-&gt;()
+RETURN type(r) as type, count(*) as freq
 ORDER BY freq DESC;<!--/code--></pre>
 </div>
 </div>
