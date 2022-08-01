@@ -126,8 +126,8 @@ Relationship-types in the graph and counts for eachabel:
 
 [source,cypher]
 ----
-MATCH (n)
-RETURN labels(n) as label, count(*) as freq
+MATCH ()-[r]->()
+RETURN type(r) as type, count(*) as freq
 ORDER BY freq DESC;
 ----
 
