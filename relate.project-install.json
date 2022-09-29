@@ -10,9 +10,14 @@
           "plugins": ["apoc"]
       },
       {
-        "dumpFile": "data/stackoverflow-4-3-1.dump",
+        "dumpFile": "data/stackoverflow-43.dump",
         "targetNeo4jVersion":">=4.3.0 <5.0.0",
         "plugins": ["apoc"]
-    }
+      },
+      {
+        "dumpFile": "data/stackoverflow-50.dump",
+        "targetNeo4jVersion":">=5.0.0 <6.0.0",
+        "plugins": ["apoc"]
+      }
   ]
 }
