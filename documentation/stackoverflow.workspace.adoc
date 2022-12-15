@@ -13,6 +13,7 @@ This guide will show you how to:
 * Query: discover the most engaged users and most popular questions
 
 Throughout the guide you'll find Cypher statements that you can execute by clicking on the play button.
+If you want to modify a statement, click the arrow instead to copy the statement to the Cypher editor, where you can modify before executing.
 
 == The Model
 
@@ -47,7 +48,8 @@ CALL db.schema.visualization;
 
 There is already data preloaded in this graph, if you want to extend (more pages or other tags) or update it with the most recent questions, please modify and run the statement below.
 
-Update this dataset using `apoc.load.json`. Run the query as-is to update or add a tag to the `tags` array to extend. 
+Update this dataset using `apoc.load.json`.
+ Run the query as-is to update or add a tag to the `tags` array to extend. 
 
 //setup
 [source,cypher]
@@ -238,7 +240,7 @@ WITH t1, t2,count(*) as freq  where freq > 3
 RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel
 ----
 
-If you want to you can also materialize those relationships in the graph and then explore the data in Browser or Bloom visually forming clusters.
+If you want to you, can also materialize those relationships in the graph and then explore the data in the _Explore_ tab, visually forming clusters.
 
 [source,cypher]
 ----
