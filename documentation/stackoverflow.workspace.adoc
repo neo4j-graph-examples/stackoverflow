@@ -1,7 +1,7 @@
 == Exploring Stackoverflow
 :images: {img}
 
-image::{images}/so_logo.svg[float=right,width=200px]
+image::{img}/so_logo.svg[float=right,width=200px]
 
 Every developer has a tab open https://stackoverflow.com/[Stack Overflow^], the massively popular question-and-answer site. 
 This dataset explores users, questions, answers, comments, and tags related to the `neo4j`- and `cypher`- tagged questions on Stack Overflow.
@@ -13,11 +13,12 @@ This guide will show you how to:
 * Query: discover the most engaged users and most popular questions
 
 Throughout the guide you'll find Cypher statements that you can execute by clicking on the play button.
+
 If you want to modify a statement, click the arrow instead to copy the statement to the Cypher editor, where you can modify before executing.
 
 == The Model
 
-image::{images}/model.svg[width=100%]
+image::{img}/model.svg[width=100%]
 
 === Nodes
 
