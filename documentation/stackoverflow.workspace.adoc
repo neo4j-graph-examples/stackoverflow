@@ -1,7 +1,7 @@
 == Exploring Stackoverflow
 :images: {img}
 
-image::{img}/so_logo.svg[float=right,width=200px]
+image::{images}/so_logo.svg[float=right,width=200px]
 
 Every developer has a tab open https://stackoverflow.com/[Stack Overflow^], the massively popular question-and-answer site. 
 This dataset explores users, questions, answers, comments, and tags related to the `neo4j`- and `cypher`- tagged questions on Stack Overflow.
@@ -12,7 +12,7 @@ This guide will show you how to:
 * Find: Find unanswered questions
 * Query: discover the most engaged users and most popular questions
 
-Throughout the guide you'll find Cypher statements that you can execute by clicking on them and then hitting the run button.
+Throughout the guide you'll find Cypher statements that you can execute by clicking on the play button.
 
 == The Model
 
