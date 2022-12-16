@@ -42,7 +42,7 @@ If you want to see it yourself, run:
 
 [source,cypher]
 ----
-CALL db.schema.visualization;
+CALL db.schema.visualization();
 ----
 
 == Load JSON Import
@@ -52,7 +52,6 @@ There is already data preloaded in this graph, if you want to extend (more pages
 Update this dataset using `apoc.load.json`.
  Run the query as-is to update or add a tag to the `tags` array to extend. 
 
-//setup
 [source,cypher]
 ----
 // look for several pages of questions
@@ -113,7 +112,7 @@ FOREACH (c in q.comments |
 );
 ----
 
-Read More: https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
+Read More: https://neo4j.com/docs/apoc/current/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
 
 == Basic Queries
 
@@ -241,7 +240,7 @@ WITH t1, t2,count(*) as freq  where freq > 3
 RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel
 ----
 
-If you want to, you can also visualize those relationships in the graph and then explore the data in the _Explore_ tab.
+If you want to, you can also materialize those relationships in the graph and then explore the data in the _Explore_ tab.
 
 [source,cypher]
 ----
