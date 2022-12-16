@@ -1,0 +1,272 @@
+== Exploring Stackoverflow
+:images: {img}
+
+image::{img}/so_logo.svg[float=right,width=200px]
+
+Every developer has a tab open https://stackoverflow.com/[Stack Overflow^], the massively popular question-and-answer site. 
+This dataset explores users, questions, answers, comments, and tags related to the `neo4j`- and `cypher`- tagged questions on Stack Overflow.
+
+This guide will show you how to:
+
+* Create: load questions, answers, comments, tags, and users into the graph
+* Find: Find unanswered questions
+* Query: discover the most engaged users and most popular questions
+
+Throughout the guide you'll find Cypher statements that you can execute by clicking on the play button.
+
+If you want to modify a statement, click the arrow instead to copy the statement to the Cypher editor, where you can modify before executing.
+
+== The Model
+
+image::{img}/model.svg[width=100%]
+
+=== Nodes
+
+We model the `Users`, `Questions`, `Answers`, `Comments`, and `Tags` as nodes. 
+
+=== Relationships
+
+Users ask questions, comment, and provide answers.
+
+`(:User)-[:ASKED]->(:Question)`
+`(:User)-[:COMMENTED]->(:Comment)`
+`(:User)-[:PROVIDED]->(:Answer)`
+
+Answers attempt to answer questions, comments are made on questions, and questions are associated with tags.  
+
+`(:Answer)-[:ANSWERED]->(:Question)`
+`(:Comment)-[:COMMENTED_ON]->(:Question)`
+`(:Question)-[:TAGGED]->(:Tag)`
+
+If you want to see it yourself, run:
+
+[source,cypher]
+----
+CALL db.schema.visualization();
+----
+
+== Load JSON Import
+
+There is already data preloaded in this graph, if you want to extend (more pages or other tags) or update it with the most recent questions, please modify and run the statement below.
+
+Update this dataset using `apoc.load.json`.
+ Run the query as-is to update or add a tag to the `tags` array to extend. 
+
+[source,cypher]
+----
+// look for several pages of questions
+WITH ["neo4j","cypher"] as tags 
+UNWIND tags as tagName
+UNWIND range(1,2) as page
+
+WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&pagesize=25&order=desc&sort=creation&tagged="+tagName+"&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
+
+CALL apoc.load.json(url) YIELD value
+CALL apoc.util.sleep(250)  // careful with throttling
+
+UNWIND value.items AS q
+
+// create the questions
+MERGE (question:Question {uuid:q.question_id})
+  ON CREATE SET question.title = q.title, 
+  	question.link = q.share_link, 
+  	question.creation_date = q.creation_date, 
+  	question.accepted_answer_id=q.accepted_answer_id, 
+  	question.view_count=q.view_count,
+   	question.answer_count=q.answer_count,
+   	question.body_markdown=q.body_markdown
+
+// who asked the question
+MERGE (owner:User {uuid:coalesce(q.owner.user_id,'deleted')})
+  ON CREATE SET owner.display_name = q.owner.display_name
+MERGE (owner)-[:ASKED]->(question)
+
+// what tags do the questions have
+FOREACH (tagName IN q.tags | 
+  MERGE (tag:Tag {name:tagName}) 
+    ON CREATE SET tag.link = "https://stackoverflow.com/questions/tagged/" + tag.name
+  MERGE (question)-[:TAGGED]->(tag))
+
+// who answered the questions?
+FOREACH (a IN q.answers |
+   MERGE (question)<-[:ANSWERED]-(answer:Answer {uuid:a.answer_id})
+    ON CREATE SET answer.is_accepted = a.is_accepted,
+    answer.link=a.share_link,
+    answer.title=a.title,
+    answer.body_markdown=a.body_markdown,
+    answer.score=a.score,
+   	answer.favorite_score=a.favorite_score,
+   	answer.view_count=a.view_count
+   MERGE (answerer:User {uuid:coalesce(a.owner.user_id,'deleted')}) 
+    ON CREATE SET answerer.display_name = a.owner.display_name
+   MERGE (answer)<-[:PROVIDED]-(answerer)
+)
+
+// who commented ont he question
+FOREACH (c in q.comments |
+  MERGE (question)<-[:COMMENTED_ON]-(comment:Comment {uuid:c.comment_id})
+    ON CREATE SET comment.link=c.link, comment.score=c.score
+  MERGE (commenter:User {uuid:coalesce(c.owner.user_id,'deleted')}) 
+    ON CREATE SET commenter.display_name = c.owner.display_name
+  MERGE (comment)<-[:COMMENTED]-(commenter)
+);
+----
+
+Read More: https://neo4j.com/docs/apoc/current/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
+
+== Basic Queries
+
+Labels in the graph and counts for each:
+
+[source,cypher]
+----
+MATCH (n)
+RETURN labels(n) as label, count(*) as freq
+ORDER BY freq DESC;
+----
+
+Relationship-types in the graph and counts for eachabel:
+
+[source,cypher]
+----
+MATCH ()-[r]->()
+RETURN type(r) as type, count(*) as freq
+ORDER BY freq DESC;
+----
+
+== Top Tags
+
+Which are the most popular tags?
+
+[source,cypher]
+----
+MATCH (q:Question)-[:TAGGED]->(t:Tag)
+RETURN t.name,  count(q) AS questions
+ORDER BY questions DESC
+LIMIT 5;
+----
+
+== Exploring Users
+
+Who are the top users asking questions?
+
+[source,cypher]
+----
+MATCH (u:User)-[:ASKED]->(q:Question)
+RETURN u.display_name, count(*) AS questions
+ORDER by questions DESC 
+LIMIT 10;
+----
+
+Who's answering? 
+
+Ordered by number of answers 
+
+[source,cypher]
+----
+MATCH (u:User)-[:PROVIDED]->(a:Answer)-[:ANSWERED]->(q:Question)
+RETURN u.display_name as user,COUNT(a) AS answers, avg(a.score) as avg_score
+ORDER BY answers DESC LIMIT 10;
+----
+
+Ordered by max score, filtered for a particular tag
+
+[source,cypher]
+----
+MATCH (u:User)-[:PROVIDED]->(a:Answer)-[:ANSWERED]->
+      (q:Question)-[:TAGGED]->(:Tag {name:"cypher"})
+RETURN u.display_name as user,COUNT(a) AS answers, max(a.score) as max_score
+ORDER BY max_score DESC LIMIT 10;
+----
+
+What's the shortest path between users?
+
+[source,cypher]
+----
+MATCH path = allShortestPaths(
+  (u1:User {display_name:"alexanoid"})-[*]-(u2:User {display_name:"InverseFalcon"})
+)
+RETURN path LIMIT 1;
+----
+
+== User Engagement
+
+User engagement over time:
+
+[source,cypher]
+----
+MATCH (u:User)-[:PROVIDED]->()-[:ANSWERED]->
+      (q:Question)-[:TAGGED]->(t:Tag)
+WHERE u.display_name = "InverseFalcon"
+RETURN apoc.date.format(q.creation_date,'s','yyyy-MM') as month, 
+       count(distinct q) as count, collect(distinct t.name) as tags
+ORDER BY month asc
+----
+
+== Unanswered Questions
+
+What are the tags for unanswered questions?
+
+[source,cypher]
+----
+MATCH (q:Question)-[:TAGGED]->(t:Tag)
+WHERE NOT t.name IN ['neo4j','cypher'] 
+  AND NOT (q)<-[:ANSWERED]-()
+RETURN t.name as tag, count(q) AS questions
+ORDER BY questions DESC LIMIT 10;
+----
+
+== How are tags related to other tags?
+
+Tag correlations:
+
+[source,cypher]
+----
+MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
+WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
+RETURN t1.name, t2.name,count(*) as freq
+ORDER BY freq desc LIMIT 10;
+----
+
+== Virtual Graphs: Tags
+
+Project tags via co-occurrence with virtual relationships.
+
+[source,cypher]
+----
+MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
+WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
+WITH t1, t2,count(*) as freq  where freq > 3
+RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel
+----
+
+If you want to, you can also materialize those relationships in the graph and then explore the data in the _Explore_ tab.
+
+[source,cypher]
+----
+MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
+WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
+WITH t1, t2,count(*) as freq  where freq > 3
+MERGE (t1)-[r:OCCURRED]-(t2) SET r.freq=freq
+RETURN count(*)
+----
+
+== Virtual Graphs: Social Network
+
+We can do something similar for commenters - what users keep on running into each other in the comments? 
+
+[source,cypher]
+----
+MATCH p1=(u1:User)-[:COMMENTED]->(c1:Comment)-[:COMMENTED_ON]-(q:Question)
+MATCH p2=(u2:User)-[:COMMENTED]->(c2:Comment)-[:COMMENTED_ON]-(q)
+WHERE id(u1) < id(u2)
+WITH u1, u2, count(distinct q) as freq
+WHERE freq > 2
+RETURN u1, u2, apoc.create.vRelationship(u1,'OCCURRED',{freq:freq},u2) as rel
+----
+
+== Further Reading
+
+* https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
+* https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
+* https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes^]
