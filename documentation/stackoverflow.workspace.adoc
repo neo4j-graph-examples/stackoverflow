@@ -241,7 +241,7 @@ WITH t1, t2,count(*) as freq  where freq > 3
 RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel
 ----
 
-If you want to you, can also materialize those relationships in the graph and then explore the data in the _Explore_ tab, visually forming clusters.
+If you want to, you can also visualize those relationships in the graph and then explore the data in the _Explore_ tab.
 
 [source,cypher]
 ----
