@@ -20,6 +20,8 @@ If you want to modify a statement, click the arrow instead to copy the statement
 
 image::{img}/model.svg[width=100%]
 
+button::Get the StackOverflow dataset[role=NX_IMPORT_LOAD,endpoint=https://neo4j-graph-examples.github.io/stackoverflow/data/stackoverflow-data-importer.zip]
+
 === Nodes
 
 We model the `Users`, `Questions`, `Answers`, `Comments`, and `Tags` as nodes. 
