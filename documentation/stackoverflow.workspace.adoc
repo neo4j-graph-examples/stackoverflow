@@ -14,10 +14,18 @@ In this guide, you will learn:
 In the next section, you will import the Stack Overflow dataset into Neo4j.
 
 == Stake Overflow Graph Model
+[role=NX_TAB_NAV,tab=import]
+pagelaunch::[]
 
 The model contains data about users' questions, answers, and comments about Neo4j and Cypher.
 
-Nodes represent `Users`, `Questions`, `Answers`, `Comments`, and `Tags`.
+Nodes represent: 
+
+* `Users`
+* `Questions`
+* `Answers`
+* `Comments`
+* `Tags`.
 
 image::{img}/model.svg[width=100%]
 
@@ -32,22 +40,26 @@ The relationships between these nodes show:
 
 button::Import the StackOverflow dataset[role=NX_IMPORT_LOAD,endpoint=https://neo4j-graph-examples.github.io/stackoverflow/data/stackoverflow-data-importer.zip]
 
+Click the highlight:import/import-run-import-button[Run import] button to import the data into Neo4j.
+
+button::Explore the data model[role=NX_EXPLORE_SEARCH,search=User any Question any Answer]
+
 Take a minute to _Explore_ the data model:
 
 . Find a `Question` node
 . Follow the `ASKED` relationship to the `User` who asked the question
 . Find an `Answer` node and follow the `ANSWERED` relationship to the `Question` it answered
 
-button::Explore the data model[role=NX_EXPLORE_SEARCH,search=show me a graph]
-
 [TIP]
 ====
-You can double-click on nodes to expand them and see their properties.
+You can zoom in to see more detail and double-click on nodes to expand them and see their properties.
 ====
 
 In the next section, you will use Cypher to query the graph.
 
 == Users and Questions
+[role=NX_TAB_NAV,tab=query]
+pagelaunch::[]
 
 Using the data model and Cypher, you can answer questions such as:
 
@@ -66,8 +78,6 @@ MATCH (u:User)-[a:ASKED]->(q:Question)
 RETURN u,a,q
 ----
 
-Run the query and observe the results. You should note that the `ASKED` relationship is in the direction `User` to `Question`.
-
 [NOTE]
 ====
 The duplicate button icon:DuplicateIcon[] will copy the query to the clipboard.
@@ -75,13 +85,25 @@ The duplicate button icon:DuplicateIcon[] will copy the query to the clipboard.
 The play button icon:PlayIcon[] will execute the query and return the results.
 ====
 
-Modify the query to find `User` and `Answer` nodes using the `PROVIDED` relationship.
+Run the query and observe the results. You should note that the `ASKED` relationship is in the direction `User` to `Question`.
+
+[NOTE]
+.Challenge
+====
+Can you complete this query to find `User` and `Answer` nodes using the `PROVIDED` relationship.
+
+[source,cypher]
+----
+MATCH (u:User)-[ ]->( )
+RETURN u,
+----
+====
 
 The query will return this graph of `User` and `Answer` nodes.
 
-image::{img}/user-provided-answer.svg[A graph of User and Answer nodes. There are clear clusters of users and answers.]
+image::{img}/user-provided-answer.png[A graph of User and Answer nodes. There are clear clusters of users and answers.]
 
-From the distribution of the graph, you can see that there are a few users who have provided many answers.
+The distribution of nodes in the graph is not uniform - you can see that a few users have provided many answers.
 
 In the next section, you will write Cypher to discover who those users are.
 
@@ -127,21 +149,25 @@ ORDER BY answers DESC
 LIMIT 10
 ----
 
-Modify the query to find:
+[NOTE]
+.Challenge
+====
+Can you modify the query to find:
 
 . The users with the highest average score by modifying the `ORDER`.
 . The users with the highest maximum score by using the `max` function.
+====
 
 The graph also contains the comments that users make on questions. The `COMMENTED` relationship connects `User` and `Comment` nodes.
 
 Complete this query to use the `COMMENTED` relationship to find the users who commented the most.
 
-.Replace the `??????` to complete the query.
+.Replace the `?`'s to complete the query
 [source,cypher]
 ----
-MATCH (u:User)-[:??????]->(c:Comment)
-RETURN u.display_name, COUNT(??????) AS comments
-ORDER BY ?????? DESC 
+MATCH (u:User)-[:?????????]->(c:Comment)
+RETURN u.display_name, COUNT(?) AS comments
+ORDER BY ???????? DESC 
 LIMIT 10
 ----
 
@@ -176,12 +202,10 @@ Extending the query to include the `Tag` nodes through the `TAGGED` relationship
 
 [source,cypher]
 ----
-MATCH (u:User)-[:ASKED]->(q:Question)-[:TAGGED]->(t:Tag)
+MATCH (u:User)-[a:ASKED]->(q:Question)-[tg:TAGGED]->(t:Tag)
 WHERE u.display_name = "A. L" AND t.name = "cypher"
-RETURN u,a,q,t
+RETURN u,a,q,tg,t
 ----
-
-Challenge - Can you find comments made by `"cybersam"` on questions tagged with `"neo4j"`? 
 
 [NOTE]
 .Challenge
@@ -223,7 +247,11 @@ MATCH path = allShortestPaths(
 RETURN path;
 ----
 
-Identify other users in the graph and find the shortest path between them.
+[NOTE]
+.Challenge
+====
+Can you identify 2 other users in the graph and find the shortest path between them?
+====
 
 In the next section, you will explore some Cypher queries and review the results.
 
@@ -324,6 +352,7 @@ In the next section, you will find more resources to continue learning about Neo
 Congratulations on completing this guide!
 
 You can continue your Neo4j learning journey with these resources:
+
 * https://neo4j.com/graphacademy[Neo4j GraphAcademy - completely free online course^]
 * https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
 * https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes^]
