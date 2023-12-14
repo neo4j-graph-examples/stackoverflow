@@ -353,6 +353,8 @@ Congratulations on completing this guide!
 
 You can continue your Neo4j learning journey with these resources:
 
-* https://neo4j.com/graphacademy[Neo4j GraphAcademy - completely free online course^]
-* https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
-* https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes^]
+https://neo4j.com/graphacademy[Neo4j GraphAcademy - completely free online courses^]
+
+https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
+
+https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes^]
