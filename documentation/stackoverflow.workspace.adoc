@@ -50,9 +50,16 @@ Take a minute to _Explore_ the data:
 . Follow the `ASKED` relationship to the `User` who asked the question
 . Find an `Answer` node and follow the `ANSWERED` relationship to the `Question` it answered
 
+You can zoom in to see more detail and double-click on nodes to see their properties.
+
 [TIP]
 ====
-You can zoom in to see more detail and double-click on nodes to expand them and see their properties.
+You can also see a visual representation of the graph data model by running this Cypher query:
+
+[source,cypher]
+----
+CALL db.schema.visualization();
+----
 ====
 
 In the next section, you will use Cypher to query the graph.
@@ -80,7 +87,7 @@ RETURN u,a,q
 
 [NOTE]
 ====
-The duplicate button icon:ArrowIcon[] will copy the query to the clipboard.
+The arrow button icon:ArrowIcon[] will copy the query to the clipboard.
 
 The play button icon:PlayIcon[] will execute the query and return the results.
 ====
@@ -92,10 +99,11 @@ Run the query and observe the results. You should note that the `ASKED` relation
 ====
 Can you complete this query to find `User` and `Answer` nodes using the `PROVIDED` relationship:
 
+.Replace the `?`'s to complete the query
 [source,cypher]
 ----
-MATCH (u:User)-[ ]->( )
-RETURN u,
+MATCH (u:User)-[?]->(?)
+RETURN u,?,?
 ----
 ====
 
@@ -306,7 +314,7 @@ RETURN path;
 [NOTE]
 .Challenge
 ====
-Can you identify 2 other users in the graph and find the shortest path between them?
+Can you identify two other users in the graph and find the shortest path between them?
 ====
 
 In the next section, you will explore some Cypher queries and review the results.
@@ -373,34 +381,6 @@ RETURN t1.name, t2.name,count(*) as freq
 ORDER BY freq desc LIMIT 10;
 ----
 
-=== Virtual Graphs: Tags
-
-Using virtual relationships can help you find unknown relationships in the graph. 
-
-For example, you can create a virtual relationship between tags that occur together more than three times:
-
-[source,cypher]
-----
-MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
-WHERE id(t1) < id(t2) 
-WITH t1, t2, count(*) as freq WHERE freq > 3
-RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) AS rel
-----
-
-=== Virtual Graphs: Social Network
-
-You can take a similar approach for _commenters_ - what users interact with each other in the comments? 
-
-[source,cypher]
-----
-MATCH p1=(u1:User)-[:COMMENTED]->(c1:Comment)-[:COMMENTED_ON]-(q:Question)
-MATCH p2=(u2:User)-[:COMMENTED]->(c2:Comment)-[:COMMENTED_ON]-(q)
-WHERE id(u1) < id(u2)
-WITH u1, u2, count(distinct q) as freq
-WHERE freq > 2
-RETURN u1, u2, apoc.create.vRelationship(u1,'OCCURRED',{freq:freq},u2) as rel
-----
-
 In the next section, you will find more resources to continue learning about Neo4j.
 
 == Next steps
@@ -409,8 +389,10 @@ Congratulations on completing this guide!
 
 You can continue your Neo4j learning journey with these resources:
 
-https://neo4j.com/graphacademy[Neo4j GraphAcademy - completely free online courses^]
+link:https://neo4j.com/graphacademy[Neo4j GraphAcademy - completely free online courses^]
 
-https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
+link:https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
 
-https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes^]
+link:https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questions into Neo4j In Just 3 Minutes^]
+
+link:https://towardsdatascience.com/tagoverflow-correlating-tags-in-stackoverflow-66e2b0e1117b[TagOverflow — Correlating Tags in Stackoverflow^]
