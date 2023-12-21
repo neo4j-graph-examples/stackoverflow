@@ -1,4 +1,4 @@
-== Exploring Stackoverflow
+== Explore Stack Overflow
 :images: {img}
 
 image::{img}/so_logo.svg[float=right,width=200px]
@@ -25,7 +25,7 @@ Nodes represent:
 * `Questions`
 * `Answers`
 * `Comments`
-* `Tags`.
+* `Tags`
 
 image::{img}/model.svg[width=100%]
 
@@ -76,7 +76,7 @@ Using the data model and Cypher, you can answer questions such as:
 * Which questions are unanswered?
 * What answers are the most popular?
 
-The following query will use the `ASKED` relationship to find `User` and `Question` nodes.
+The following query uses the `ASKED` relationship to find `User` and `Question` nodes.  
 
 .Match User and Question nodes
 [source,cypher]
@@ -87,12 +87,13 @@ RETURN u,a,q
 
 [NOTE]
 ====
-The arrow button icon:ArrowIcon[] will copy the query to the clipboard.
+The arrow button icon:ArrowIcon[] copies the query to the clipboard.
 
-The play button icon:PlayIcon[] will execute the query and return the results.
+The play button icon:PlayIcon[] executes the query and returns the results.
 ====
 
-Run the query and observe the results. You should note that the `ASKED` relationship is in the direction `User` to `Question`.
+Run the query and observe the results. 
+You should note that the `ASKED` relationship is in the direction `User` to `Question`.
 
 [NOTE]
 .Challenge
@@ -117,7 +118,7 @@ RETURN u,p,a
 ----
 ====
 
-The query will return this graph of `User` and `Answer` nodes.
+The query returns this graph of `User` and `Answer` nodes:
 
 image::{img}/user-provided-answer.png[A graph of User and Answer nodes. There are clear clusters of users and answers.]
 
@@ -136,7 +137,7 @@ MATCH (u:User)-[:ASKED]->(q:Question)
 RETURN u.display_name, count(*) AS questions
 ----
 
-Adding an order and limiting the number of rows will return a top 10 list of users who asked the most questions.
+Adding an order and limiting the number of rows returns a top 10 list of users who asked the most questions.
 
 [source,cypher]
 ----
@@ -157,7 +158,8 @@ ORDER BY answers DESC
 LIMIT 10
 ----
 
-Users score answers on StakeOverflow. You can find each user's average score for answers using the `avg` function.
+Users score answers on Stake Overflow. 
+You can find each user's average score using the `avg` function.
 
 [source,cypher]
 ----
@@ -172,7 +174,7 @@ LIMIT 10
 ====
 Can you modify the query to find:
 
-. The users with the highest average score by modifying the `ORDER`.
+. The users with the highest average score by changing the `ORDER`.
 . The users with the highest maximum score by using the `max` function.
 ====
 
@@ -283,7 +285,7 @@ In the next section, you will use shortest path functions to understand how user
 
 == Shortest paths
 
-As you have seen, users are related to each other through the questions they ask, the answers they provide, and the comments they make.
+As you have seen, user nodes are related to each other through the questions they ask, the answers they provide, and the comments they make.
 
 You can use shortest path functions to find the shortest path between users.
 
@@ -301,7 +303,8 @@ The query is defined as the path `(u1:User {display_name:"A. L"})-[*]-(u2:User {
 
 The `[*]` is a wildcard that matches any relationship type.
 
-The query returns the first shortest path it finds. You can return all of the shortest paths by using the `allShortestPaths` function.
+The query returns the first shortest path it finds. 
+You can return *all* the shortest paths using the `allShortestPaths` function.
 
 [source,cypher]
 ----
@@ -327,9 +330,11 @@ Review each Cypher query before running and observing the results.
 
 === Unanswered Questions
 
-What questions remain unanswered? In the graph, unanswered questions do not have an `ANSWERED` relationship.
+What questions remain unanswered? 
+In the graph, unanswered questions do not have an `ANSWERED` relationship.
 
-The absence of a relationship is a valid path in Cypher. You can use the `NOT` keyword to negate a pattern.
+The absence of a relationship is a valid path in Cypher. 
+You can use the `NOT` keyword to negate a pattern.
 
 [source,cypher]
 ----
@@ -353,7 +358,7 @@ ORDER BY questions DESC LIMIT 10;
 
 === User Engagement
 
-By aggregating when users interacted with StakeOverflow, you can see how active they are.
+By aggregating when users interacted with Stack Overflow, you can see how active they are.
 
 For example, you can aggregate the number of questions answered by month.
 
