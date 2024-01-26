@@ -13,7 +13,7 @@ In this guide, you will learn:
 
 In the next section, you will import the Stack Overflow dataset into Neo4j.
 
-== Stack Overflow Graph Model
+== Stack Overflow graph model
 [role=NX_TAB_NAV,tab=import]
 pagelaunch::[]
 
