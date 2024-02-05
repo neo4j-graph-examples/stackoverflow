@@ -1,213 +1,351 @@
-== Exploring Stackoverflow
+== Explore Stack Overflow
 :images: {img}
 
 image::{img}/so_logo.svg[float=right,width=200px]
 
-Every developer has a tab open https://stackoverflow.com/[Stack Overflow^], the massively popular question-and-answer site. 
-This dataset explores users, questions, answers, comments, and tags related to the `neo4j`- and `cypher`- tagged questions on Stack Overflow.
+https://stackoverflow.com/[Stack Overflow^], the massively popular question-and-answer site for developers.
 
-This guide will show you how to:
+In this guide, you will learn:
 
-* Create: load questions, answers, comments, tags, and users into the graph
-* Find: Find unanswered questions
-* Query: discover the most engaged users and most popular questions
+* How you can model social data as graphs
+* How to query the graph and answer questions using Cypher
+* How to use shortest path algorithms to understand relationships
 
-Throughout the guide you'll find Cypher statements that you can execute by clicking on the play button.
+In the next section, you will import the Stack Overflow dataset into Neo4j.
 
-If you want to modify a statement, click the arrow instead to copy the statement to the Cypher editor, where you can modify before executing.
+== Stack Overflow graph model
+[role=NX_TAB_NAV,tab=import]
+pagelaunch::[]
 
-== The Model
+The model contains data about users' questions, answers, and comments about Neo4j and Cypher.
+
+Nodes represent: 
+
+* `Users`
+* `Questions`
+* `Answers`
+* `Comments`
+* `Tags`
 
 image::{img}/model.svg[width=100%]
 
-button::Get the StackOverflow dataset[role=NX_IMPORT_LOAD,endpoint=https://neo4j-graph-examples.github.io/stackoverflow/data/stackoverflow-data-importer.zip]
+The relationships between these nodes show:
 
-=== Nodes
+. What `User` `ASKED` a `Question`
+. What `User` `PROVIDED` an `Answer`
+. What `User` `COMMENTED` to a `Comment`
+. What `Answer` `ANSWERED` a `Question`
+. What `Comment` is `COMMENTED_ON` a `Question`
+. What `Question` is `TAGGED` with a `Tag`
 
-We model the `Users`, `Questions`, `Answers`, `Comments`, and `Tags` as nodes. 
+button::Import the StackOverflow dataset[role=NX_IMPORT_LOAD,endpoint=https://neo4j-graph-examples.github.io/stackoverflow/data/stackoverflow-data-importer.zip]
 
-=== Relationships
+Click the highlight:import/import-run-import-button[Run import] button to import the data into Neo4j.
 
-Users ask questions, comment, and provide answers.
+button::Explore the data[role=NX_EXPLORE_SEARCH,search=User any Question any Answer]
 
-`(:User)-[:ASKED]->(:Question)`
-`(:User)-[:COMMENTED]->(:Comment)`
-`(:User)-[:PROVIDED]->(:Answer)`
+Take a minute to _Explore_ the data:
 
-Answers attempt to answer questions, comments are made on questions, and questions are associated with tags.  
+. Find a `Question` node
+. Follow the `ASKED` relationship to the `User` who asked the question
+. Find an `Answer` node and follow the `ANSWERED` relationship to the `Question` it answered
 
-`(:Answer)-[:ANSWERED]->(:Question)`
-`(:Comment)-[:COMMENTED_ON]->(:Question)`
-`(:Question)-[:TAGGED]->(:Tag)`
+You can zoom in to see more detail and double-click on nodes to see their properties.
 
-If you want to see it yourself, run:
+[TIP]
+====
+You can also see a visual representation of the graph data model by running this Cypher query:
 
 [source,cypher]
 ----
 CALL db.schema.visualization();
 ----
+====
 
-== Load JSON Import
+In the next section, you will use Cypher to query the graph.
 
-There is already data preloaded in this graph, if you want to extend (more pages or other tags) or update it with the most recent questions, please modify and run the statement below.
+== Users and Questions
+[role=NX_TAB_NAV,tab=query]
+pagelaunch::[]
 
-Update this dataset using `apoc.load.json`.
- Run the query as-is to update or add a tag to the `tags` array to extend. 
+Using the data model and Cypher, you can answer questions such as:
 
+* Which users asked the most questions?
+* Which users provided the most answers?
+* How are users related to each other?
+* Which questions are unanswered?
+* What answers are the most popular?
+
+The following query uses the `ASKED` relationship to find `User` and `Question` nodes.  
+
+.Match User and Question nodes
 [source,cypher]
 ----
-// look for several pages of questions
-WITH ["neo4j","cypher"] as tags 
-UNWIND tags as tagName
-UNWIND range(1,2) as page
-
-WITH "https://api.stackexchange.com/2.3/questions?page="+page+"&pagesize=25&order=desc&sort=creation&tagged="+tagName+"&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" as url
-
-CALL apoc.load.json(url) YIELD value
-CALL apoc.util.sleep(250)  // careful with throttling
-
-UNWIND value.items AS q
-
-// create the questions
-MERGE (question:Question {uuid:q.question_id})
-  ON CREATE SET question.title = q.title, 
-  	question.link = q.share_link, 
-  	question.creation_date = q.creation_date, 
-  	question.accepted_answer_id=q.accepted_answer_id, 
-  	question.view_count=q.view_count,
-   	question.answer_count=q.answer_count,
-   	question.body_markdown=q.body_markdown
-
-// who asked the question
-MERGE (owner:User {uuid:coalesce(q.owner.user_id,'deleted')})
-  ON CREATE SET owner.display_name = q.owner.display_name
-MERGE (owner)-[:ASKED]->(question)
-
-// what tags do the questions have
-FOREACH (tagName IN q.tags | 
-  MERGE (tag:Tag {name:tagName}) 
-    ON CREATE SET tag.link = "https://stackoverflow.com/questions/tagged/" + tag.name
-  MERGE (question)-[:TAGGED]->(tag))
-
-// who answered the questions?
-FOREACH (a IN q.answers |
-   MERGE (question)<-[:ANSWERED]-(answer:Answer {uuid:a.answer_id})
-    ON CREATE SET answer.is_accepted = a.is_accepted,
-    answer.link=a.share_link,
-    answer.title=a.title,
-    answer.body_markdown=a.body_markdown,
-    answer.score=a.score,
-   	answer.favorite_score=a.favorite_score,
-   	answer.view_count=a.view_count
-   MERGE (answerer:User {uuid:coalesce(a.owner.user_id,'deleted')}) 
-    ON CREATE SET answerer.display_name = a.owner.display_name
-   MERGE (answer)<-[:PROVIDED]-(answerer)
-)
-
-// who commented ont he question
-FOREACH (c in q.comments |
-  MERGE (question)<-[:COMMENTED_ON]-(comment:Comment {uuid:c.comment_id})
-    ON CREATE SET comment.link=c.link, comment.score=c.score
-  MERGE (commenter:User {uuid:coalesce(c.owner.user_id,'deleted')}) 
-    ON CREATE SET commenter.display_name = c.owner.display_name
-  MERGE (comment)<-[:COMMENTED]-(commenter)
-);
+MATCH (u:User)-[a:ASKED]->(q:Question)
+RETURN u,a,q
 ----
 
-Read More: https://neo4j.com/docs/apoc/current/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
+[NOTE]
+====
+The arrow button icon:ArrowIcon[] copies the query to the clipboard.
 
-== Basic Queries
+The play button icon:PlayIcon[] executes the query and returns the results.
+====
 
-Labels in the graph and counts for each:
+Run the query and observe the results. 
+You should note that the `ASKED` relationship is in the direction `User` to `Question`.
 
+[NOTE]
+.Challenge
+====
+Can you complete this query to find `User` and `Answer` nodes using the `PROVIDED` relationship:
+
+.Replace the `?`'s to complete the query
 [source,cypher]
 ----
-MATCH (n)
-RETURN labels(n) as label, count(*) as freq
-ORDER BY freq DESC;
+MATCH (u:User)-[?]->(?)
+RETURN u,?,?
 ----
+====
 
-Relationship-types in the graph and counts for eachabel:
-
+[%collapsible]
+.Reveal the solution
+====
 [source,cypher]
 ----
-MATCH ()-[r]->()
-RETURN type(r) as type, count(*) as freq
-ORDER BY freq DESC;
+MATCH (u:User)-[p:PROVIDED]->(a:Answer)
+RETURN u,p,a
 ----
+====
 
-== Top Tags
+The query returns this graph of `User` and `Answer` nodes:
 
-Which are the most popular tags?
+image::{img}/user-provided-answer.png[A graph of User and Answer nodes. There are clear clusters of users and answers.]
 
-[source,cypher]
-----
-MATCH (q:Question)-[:TAGGED]->(t:Tag)
-RETURN t.name,  count(q) AS questions
-ORDER BY questions DESC
-LIMIT 5;
-----
+The distribution of nodes in the graph is not uniform - you can see that a few users have provided many answers.
+
+In the next section, you will write Cypher to discover who those users are.
 
 == Exploring Users
 
-Who are the top users asking questions?
+As well as returning nodes, you can also return properties of nodes and aggregations (e.g. counts).
+
+.How many questions did users ask?
+[source,cypher]
+----
+MATCH (u:User)-[:ASKED]->(q:Question)
+RETURN u.display_name, count(*) AS questions
+----
+
+Adding an order and limiting the number of rows returns a top 10 list of users who asked the most questions.
 
 [source,cypher]
 ----
 MATCH (u:User)-[:ASKED]->(q:Question)
 RETURN u.display_name, count(*) AS questions
 ORDER by questions DESC 
-LIMIT 10;
+LIMIT 10
 ----
 
-Who's answering? 
+You can create a similar query for users who provided the most answers.
 
-Ordered by number of answers 
+.How many answers did users provide?
+[source,cypher]
+----
+MATCH (u:User)-[:PROVIDED]->(a:Answer)
+RETURN u.display_name, COUNT(a) AS answers
+ORDER BY answers DESC 
+LIMIT 10
+----
+
+Users score answers on Stake Overflow. 
+You can find each user's average score using the `avg` function.
 
 [source,cypher]
 ----
-MATCH (u:User)-[:PROVIDED]->(a:Answer)-[:ANSWERED]->(q:Question)
-RETURN u.display_name as user,COUNT(a) AS answers, avg(a.score) as avg_score
-ORDER BY answers DESC LIMIT 10;
+MATCH (u:User)-[:PROVIDED]->(a:Answer)
+RETURN u.display_name, COUNT(a) AS answers, avg(a.score) as avg_score
+ORDER BY answers DESC 
+LIMIT 10
 ----
 
-Ordered by max score, filtered for a particular tag
+[NOTE]
+.Challenge
+====
+Can you modify the query to find:
+
+. The users with the highest average score by changing the `ORDER`.
+. The users with the highest maximum score by using the `max` function.
+====
+
+[%collapsible]
+.Reveal the solution
+====
+.Users with the highest average score
+[source,cypher]
+----
+MATCH (u:User)-[:PROVIDED]->(a:Answer)
+RETURN u.display_name, COUNT(a) AS answers, avg(a.score) as avg_score
+ORDER BY avg_score DESC 
+LIMIT 10
+----
+
+.Users with the highest maximum score
+[source,cypher]
+----
+MATCH (u:User)-[:PROVIDED]->(a:Answer)
+RETURN u.display_name, COUNT(a) AS answers, max(a.score) as max_score
+ORDER BY max_score DESC 
+LIMIT 10
+----
+====
+
+The graph also contains the comments that users make on questions. The `COMMENTED` relationship connects `User` and `Comment` nodes.
+
+Can you complete this query to use the `COMMENTED` relationship to find the users who commented the most?
+
+.Replace the `?`'s to complete the query
+[source,cypher]
+----
+MATCH (u:User)-[:?????????]->(c:Comment)
+RETURN u.display_name, COUNT(?) AS comments
+ORDER BY ???????? DESC 
+LIMIT 10
+----
+
+[%collapsible]
+.Reveal the solution
+====
+[source,cypher]
+----
+MATCH (u:User)-[:COMMENTED]->(c:Comment)
+RETURN u.display_name, COUNT(c) AS comments
+ORDER BY comments DESC 
+LIMIT 10
+----
+====
+
+In the next section, you will use Cypher to filter the results returned by a query.
+
+== Filtering Results
+
+In the previous section, you used Cypher to find the users who asked the most questions and provided the most answers.
+
+The user `"A. L"` asked the most questions, and `"cybersam"` provided the most answers.
+
+You can filter the results using a filter on `MATCH` or by using a `WHERE` clause.
+
+For example, find all the questions asked by `"A. L"`.
+
+.Filter on MATCH
+[source,cypher]
+----
+MATCH (u:User {display_name: "A. L"})-[a:ASKED]->(q:Question)
+RETURN u,a,q
+----
+
+.Using a WHERE clause
+[source,cypher]
+----
+MATCH (u:User)-[a:ASKED]->(q:Question)
+WHERE u.display_name = "A. L"
+RETURN u,a,q
+----
+
+Extending the query to include the `Tag` nodes through the `TAGGED` relationship allows you to filter for questions with a particular tag.
 
 [source,cypher]
 ----
-MATCH (u:User)-[:PROVIDED]->(a:Answer)-[:ANSWERED]->
-      (q:Question)-[:TAGGED]->(:Tag {name:"cypher"})
-RETURN u.display_name as user,COUNT(a) AS answers, max(a.score) as max_score
-ORDER BY max_score DESC LIMIT 10;
+MATCH (u:User)-[a:ASKED]->(q:Question)-[tg:TAGGED]->(t:Tag)
+WHERE u.display_name = "A. L" AND t.name = "cypher"
+RETURN u,a,q,tg,t
 ----
 
-What's the shortest path between users?
+[NOTE]
+.Challenge
+====
+Can you find comments made by `"cybersam"` on questions tagged with `"neo4j"`? 
+
+You will have to traverse the graph using the `User`, `Comment`, `Question`, and `Tag` nodes, through the `COMMENTED`, `COMMENTED_ON`, and `TAGGED` relationships.
+====
+
+[%collapsible]
+.Reveal the solution
+====
+.Comments made by "cybersam" on questions tagged with "neo4j"
+[source,cypher]
+----
+MATCH (u:User)-[ct:COMMENTED]->(c:Comment)-[co:COMMENTED_ON]->(q:Question)-[tg:TAGGED]->(t:Tag)
+WHERE u.display_name = "cybersam" AND t.name = "neo4j"
+RETURN u,ct,c,co,q,tg,t
+----
+====
+
+In the next section, you will use shortest path functions to understand how users relate to each other.
+
+== Shortest paths
+
+As you have seen, user nodes are related to each other through the questions they ask, the answers they provide, and the comments they make.
+
+You can use shortest path functions to find the shortest path between users.
+
+For example, you can use `shortestPath` function to find the shortest route between the user `"A. L"` who asked the most questions, and `"cybersam"` who provided the most answers.
+
+[source,cypher]
+----
+MATCH path = shortestPath(
+  (u1:User {display_name:"A. L"})-[*]-(u2:User {display_name:"cybersam"})
+)
+RETURN path;
+----
+
+The query is defined as the path `(u1:User {display_name:"A. L"})-[*]-(u2:User {display_name:"cybersam"})`.
+
+The `[*]` is a wildcard that matches any relationship type.
+
+The query returns the first shortest path it finds. 
+You can return *all* the shortest paths using the `allShortestPaths` function.
 
 [source,cypher]
 ----
 MATCH path = allShortestPaths(
-  (u1:User {display_name:"alexanoid"})-[*]-(u2:User {display_name:"InverseFalcon"})
+  (u1:User {display_name:"A. L"})-[*]-(u2:User {display_name:"cybersam"})
 )
-RETURN path LIMIT 1;
+RETURN path;
 ----
 
-== User Engagement
+[NOTE]
+.Challenge
+====
+Can you identify two other users in the graph and find the shortest path between them?
+====
 
-User engagement over time:
+In the next section, you will explore some Cypher queries and review the results.
+
+== Exploring the Graph
+
+In this section, you will review and run some Cypher queries which explore the graph.
+
+Review each Cypher query before running and observing the results.
+
+=== Unanswered Questions
+
+What questions remain unanswered? 
+In the graph, unanswered questions do not have an `ANSWERED` relationship.
+
+The absence of a relationship is a valid path in Cypher. 
+You can use the `NOT` keyword to negate a pattern.
 
 [source,cypher]
 ----
-MATCH (u:User)-[:PROVIDED]->()-[:ANSWERED]->
-      (q:Question)-[:TAGGED]->(t:Tag)
-WHERE u.display_name = "InverseFalcon"
-RETURN apoc.date.format(q.creation_date,'s','yyyy-MM') as month, 
-       count(distinct q) as count, collect(distinct t.name) as tags
-ORDER BY month asc
+MATCH (q:Question)
+WHERE NOT (q)<-[:ANSWERED]-()
+RETURN q
 ----
 
-== Unanswered Questions
+What type of questions relating to "neo4j" and "cypher" remain unanswered?
 
-What are the tags for unanswered questions?
+This query aggregates the results by the `Tag` node to show which tags have the most unanswered questions.
 
 [source,cypher]
 ----
@@ -218,9 +356,27 @@ RETURN t.name as tag, count(q) AS questions
 ORDER BY questions DESC LIMIT 10;
 ----
 
-== How are tags related to other tags?
+=== User Engagement
 
-Tag correlations:
+By aggregating when users interacted with Stack Overflow, you can see how active they are.
+
+For example, you can aggregate the number of questions answered by month.
+
+[source,cypher]
+----
+MATCH (u:User)-[:PROVIDED]->()-[:ANSWERED]->
+      (q:Question)-[:TAGGED]->(t:Tag)
+WHERE u.display_name = "cybersam"
+RETURN apoc.date.format(q.creation_date,'s','yyyy-MM') as month, 
+       count(distinct q) as count, collect(distinct t.name) as tags
+ORDER BY month asc
+----
+
+=== How are tags related to other tags?
+
+Understanding how users tag questions can help you see patterns.
+
+For example, how tags correlate to each other:
 
 [source,cypher]
 ----
@@ -230,45 +386,18 @@ RETURN t1.name, t2.name,count(*) as freq
 ORDER BY freq desc LIMIT 10;
 ----
 
-== Virtual Graphs: Tags
+In the next section, you will find more resources to continue learning about Neo4j.
 
-Project tags via co-occurrence with virtual relationships.
+== Next steps
 
-[source,cypher]
-----
-MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
-WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
-WITH t1, t2,count(*) as freq  where freq > 3
-RETURN t1,t2, apoc.create.vRelationship(t1,'OCCURRED',{freq:freq},t2) as rel
-----
+Congratulations on completing this guide!
 
-If you want to, you can also materialize those relationships in the graph and then explore the data in the _Explore_ tab.
+You can continue your Neo4j learning journey with these resources:
 
-[source,cypher]
-----
-MATCH (t1:Tag)<-[:TAGGED]-()-[:TAGGED]->(t2:Tag)
-WHERE id(t1) < id(t2) and t1.name <> 'neo4j' and t2.name <> 'neo4j'
-WITH t1, t2,count(*) as freq  where freq > 3
-MERGE (t1)-[r:OCCURRED]-(t2) SET r.freq=freq
-RETURN count(*)
-----
+link:https://neo4j.com/graphacademy[Neo4j GraphAcademy - completely free online courses^]
 
-== Virtual Graphs: Social Network
+link:https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
 
-We can do something similar for commenters - what users keep on running into each other in the comments? 
+link:https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questions into Neo4j In Just 3 Minutes^]
 
-[source,cypher]
-----
-MATCH p1=(u1:User)-[:COMMENTED]->(c1:Comment)-[:COMMENTED_ON]-(q:Question)
-MATCH p2=(u2:User)-[:COMMENTED]->(c2:Comment)-[:COMMENTED_ON]-(q)
-WHERE id(u1) < id(u2)
-WITH u1, u2, count(distinct q) as freq
-WHERE freq > 2
-RETURN u1, u2, apoc.create.vRelationship(u1,'OCCURRED',{freq:freq},u2) as rel
-----
-
-== Further Reading
-
-* https://neo4j.com/labs/apoc/4.1/import/load-json/#load-json-examples-stackoverflow[Import from StackOverflow API^]
-* https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
-* https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questionsinto Neo4j In Just 3 Minutes^]
+link:https://towardsdatascience.com/tagoverflow-correlating-tags-in-stackoverflow-66e2b0e1117b[TagOverflow — Correlating Tags in Stackoverflow^]
