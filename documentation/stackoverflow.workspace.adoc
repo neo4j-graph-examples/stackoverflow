@@ -1,4 +1,4 @@
-== Explore Stack Overflow
+== Social Network Analysis
 :images: {img}
 
 image::{img}/so_logo.svg[float=right,width=200px]
@@ -394,10 +394,10 @@ Congratulations on completing this guide!
 
 You can continue your Neo4j learning journey with these resources:
 
-link:https://neo4j.com/graphacademy[Neo4j GraphAcademy - completely free online courses^]
+link:https://neo4j.com/graphacademy[GraphAcademy - completely free online courses^]
 
-link:https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data with Michael Hunger – Twitch stream^]
+link:https://neo4j.com/videos/exploring-stackoverflow-data-with-michael-hunger-twitch-stream/[Exploring StackOverflow data^] with Michael Hunger – Twitch stream.
 
-link:https://neo4j.com/blog/import-10m-stack-overflow-questions/[Import 10M Stack Overflow Questions into Neo4j In Just 3 Minutes^]
+link:https://towardsdatascience.com/tagoverflow-correlating-tags-in-stackoverflow-66e2b0e1117b[TagOverflow^] — Correlating Tags in StackOverflow.
 
-link:https://towardsdatascience.com/tagoverflow-correlating-tags-in-stackoverflow-66e2b0e1117b[TagOverflow — Correlating Tags in Stackoverflow^]
+The source code and data dumps for this guide are available in the github repository - link:https://github.com/neo4j-graph-examples/stackoverflow[neo4j-graph-examples/stackoverflow^].
