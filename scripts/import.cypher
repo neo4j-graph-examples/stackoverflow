@@ -3,11 +3,11 @@
 // the import query looks for results related to the "neo4j" and "cypher" tags
 // The query has an added filter which allows us to get the comments and the answers (&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf)
 
-CREATE CONSTRAINT on (q:Question) ASSERT q.uuid IS UNIQUE;
-CREATE CONSTRAINT on (t:Tag) ASSERT t.name IS UNIQUE;
-CREATE CONSTRAINT on (u:User) ASSERT u.uuid IS UNIQUE;
-CREATE CONSTRAINT on (a:Answer) ASSERT a.uuid IS UNIQUE;
-CREATE CONSTRAINT on (c:Comment) ASSERT c.uuid IS UNIQUE;
+CREATE CONSTRAINT FOR (q:Question) REQUIRE q.uuid IS UNIQUE;
+CREATE CONSTRAINT FOR (t:Tag) REQUIRE t.name IS UNIQUE;
+CREATE CONSTRAINT FOR (u:User) REQUIRE u.uuid IS UNIQUE;
+CREATE CONSTRAINT FOR (a:Answer) REQUIRE a.uuid IS UNIQUE;
+CREATE CONSTRAINT FOR (c:Comment) REQUIRE c.uuid IS UNIQUE;
 
 
 // look for several pages of questions
